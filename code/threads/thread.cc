@@ -193,7 +193,7 @@ Thread::Finish ()
 //      Similar to Thread::Sleep(), but a little different.
 //----------------------------------------------------------------------
 
-extern bool count;
+char* lastThreadName;
 
 void
 Thread::Yield ()
@@ -206,10 +206,10 @@ Thread::Yield ()
 
     DEBUG ('t', "Yielding thread \"%s\"\n", getName ());
 
-    if(!count)
+    if ((char*) getName() != lastThreadName)
     {
-      count = true;
-
+      lastThreadName = (char*) getName();
+      scheduler->Run (this);
     }
     else
     {
@@ -219,7 +219,6 @@ Thread::Yield ()
         scheduler->ReadyToRun (this);
         scheduler->Run (nextThread);
       }
-      count = false;
       (void) interrupt->SetLevel (oldLevel);
     }
 

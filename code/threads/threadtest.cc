@@ -12,7 +12,7 @@
 #include "copyright.h"
 #include "system.h"
 
-int count = 0;
+
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -28,11 +28,11 @@ SimpleThread (int which)
 {
     int num;
 
-    for (num = 0; num < 25; num++)
-      {
-	  printf ("*** thread %d looped %d times\n", which, num);
-	  currentThread->Yield ();
-      }
+    for (num = 0; num < 24; num++)
+    {
+      printf ("*** thread %d looped %d times\n", which, num);
+      currentThread->Yield ();
+    }
 }
 
 //----------------------------------------------------------------------
@@ -46,8 +46,10 @@ ThreadTest ()
 {
     DEBUG ('t', "Entering SimpleTest\n");
 
-    Thread *t = new Thread ("forked thread");
+    Thread *t = new Thread ("forked thread");    
+    Thread *t2 = new Thread ("forked thread 2");
 
     t->Fork (SimpleThread, 1);
+    t2->Fork (SimpleThread, 2);
     SimpleThread (0);
 }
