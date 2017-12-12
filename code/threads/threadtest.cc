@@ -12,6 +12,8 @@
 #include "copyright.h"
 #include "system.h"
 
+int count = 0;
+
 //----------------------------------------------------------------------
 // SimpleThread
 //      Loop 5 times, yielding the CPU to another ready thread 
@@ -26,7 +28,7 @@ SimpleThread (int which)
 {
     int num;
 
-    for (num = 0; num < 5; num++)
+    for (num = 0; num < 25; num++)
       {
 	  printf ("*** thread %d looped %d times\n", which, num);
 	  currentThread->Yield ();

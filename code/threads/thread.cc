@@ -193,23 +193,37 @@ Thread::Finish ()
 //      Similar to Thread::Sleep(), but a little different.
 //----------------------------------------------------------------------
 
+extern bool count;
+
 void
 Thread::Yield ()
 {
     Thread *nextThread;
-    IntStatus oldLevel = interrupt->SetLevel (IntOff);
-
+    
+    IntStatus oldLevel;
+    oldLevel = interrupt->SetLevel (IntOff);
     ASSERT (this == currentThread);
 
     DEBUG ('t', "Yielding thread \"%s\"\n", getName ());
 
-    nextThread = scheduler->FindNextToRun ();
-    if (nextThread != NULL)
+    if(!count)
+    {
+      count = true;
+
+    }
+    else
+    {
+      nextThread = scheduler->FindNextToRun ();
+      if(nextThread != NULL)
       {
-	  scheduler->ReadyToRun (this);
-	  scheduler->Run (nextThread);
+        scheduler->ReadyToRun (this);
+        scheduler->Run (nextThread);
       }
-    (void) interrupt->SetLevel (oldLevel);
+      count = false;
+      (void) interrupt->SetLevel (oldLevel);
+    }
+
+    
 }
 
 //----------------------------------------------------------------------
