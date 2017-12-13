@@ -87,7 +87,7 @@ ConsoleTest (char *in, char *out)
     {
         readAvail->P ();	// wait for character to arrive
         ch = console->GetChar ();
-        if(ch != 0xa)
+        if(ch != 0xa && ch != EOF)
         {
             console->PutChar ('<');
             writeDone->P ();
