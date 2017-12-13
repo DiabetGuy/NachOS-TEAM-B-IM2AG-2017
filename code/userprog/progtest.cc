@@ -13,6 +13,7 @@
 #include "console.h"
 #include "addrspace.h"
 #include "synch.h"
+#include "synchconsole.h"
 
 //----------------------------------------------------------------------
 // StartProcess
@@ -108,4 +109,44 @@ ConsoleTest (char *in, char *out)
     }
       
 
+}
+
+
+void
+SynchConsoleTest2 (char *in, char *out)
+{
+    char ch;
+    SynchConsole *synchconsole = new SynchConsole(in, out);
+
+    while ((ch = synchconsole->SynchGetChar()) != EOF)
+        synchconsole->SynchPutChar(ch);
+
+    fprintf(stderr, "Solaris: EOF detected in SynchConsole!\n");
+}
+
+
+void
+SynchConsoleTest (char *in, char *out)
+{
+    char ch;
+    SynchConsole *synchconsole = new SynchConsole(in, out);
+    
+    while ((ch = synchconsole->SynchGetChar()) != EOF) {
+        if (ch != 0xa) {
+            if (ch == 'q') break;
+            /*char s[3];
+            s[0] = '<'; s[1] = ch; s[2] = '>';
+            synchconsole->SynchPutString(s);*/
+            synchconsole->SynchPutChar('<');
+            synchconsole->SynchPutChar(ch);
+            synchconsole->SynchPutChar('>');
+        }
+        else
+        {
+            synchconsole->SynchPutChar(0xa);
+        }
+
+    }
+
+    fprintf(stderr, "Solaris: EOF detected in SynchConsole!\n");
 }
