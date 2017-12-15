@@ -9,6 +9,8 @@ static Semaphore *writeDone;
 static void ReadAvail(int arg) { readAvail->V(); }
 static void WriteDone(int arg) { writeDone->V(); }
 
+char buffer[MAX_STRING_SIZE];
+
 SynchConsole::SynchConsole(char *readFile, char *writeFile)
 {
 	readAvail = new Semaphore("read avail", 0);
@@ -37,8 +39,13 @@ char SynchConsole::SynchGetChar()
 
 void SynchConsole::SynchPutString(const char s[])
 {
-	for (char* s2 = (char*) s; s2[0] != '\0'; s2 = &s2[1]) {
-		this->SynchPutChar(s2[0]); //is s2[0] the same as s2 ?
+	// for (char* s2 = (char*) s; s2[0] != '\0'; s2 = &s2[1]) {
+	// 	this->SynchPutChar(s2[0]); //is s2[0] the same as s2 ?     //#NASA
+	// }
+
+	for(int i = 0; s[i] != '\0' && i < MAX_STRING_SIZE; i++)
+	{
+		this->SynchPutChar(s[i]);
 	}
 }
 

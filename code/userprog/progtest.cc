@@ -128,18 +128,18 @@ SynchConsoleTest2 (char *in, char *out)
 void
 SynchConsoleTest (char *in, char *out)
 {
-    char ch;
-    SynchConsole *synchconsoletest = new SynchConsole(in, out);
     
-    while ((ch = synchconsoletest->SynchGetChar()) != EOF) {
-        if (ch != 0xa) {
-            if (ch == 'q') break;
-            /*char s[3];
-            s[0] = '<'; s[1] = ch; s[2] = '>';
-            synchconsoletest->SynchPutString(s);*/
-            synchconsoletest->SynchPutChar('<');
-            synchconsoletest->SynchPutChar(ch);
-            synchconsoletest->SynchPutChar('>');
+    SynchConsole *synchconsoletest = new SynchConsole(in, out);
+    char ch[10];
+    while (true) /*!= EOF*/ {
+        
+        synchconsoletest->SynchGetString(ch, 10);
+        if (ch[0] != 0xa) {
+            if (ch[0] == 'q') break;
+            synchconsoletest->SynchPutString(ch);
+            // synchconsoletest->SynchPutChar('<');
+            // synchconsoletest->SynchPutChar(ch);
+            // synchconsoletest->SynchPutChar('>');
         }
         else
         {

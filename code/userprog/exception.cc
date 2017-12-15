@@ -25,6 +25,24 @@
 #include "system.h"
 #include "syscall.h"
 
+
+
+void copyStringFromMachine(int from, char *to, unsigned size){
+  unsigned int i = 0;
+  int resultatMemoire = 0;
+
+  while((i < size) && (machine->ReadMem(from+i, 1, &resultatMemoire))){
+    to[i] = resultatMemoire;
+    i++;
+  }
+}
+
+// void copyStringToMachine( int reg, char *buf, unsigned size){
+//   unsigned int i = 0;
+//   while((i < size) && (machine->WriteMem(reg+i, 1,(int)buf[i])))
+//     i++;
+// }
+
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
 // the user program immediately after the "syscall" instruction.
@@ -81,9 +99,24 @@ ExceptionHandler (ExceptionType which)
           synchconsole->SynchPutChar((char) machine->ReadRegister(4));
           break;
         }
+        case SC_PutString: {
+          DEBUG ('p', "PutString.\n");
+          char str[MAX_STRING_SIZE];
+          copyStringFromMachine(machine->ReadRegister(4), str, MAX_STRING_SIZE);
+          synchconsole->SynchPutString(str);
+          break;
+        }
+        case SC_GetChar: {
+          DEBUG ('p', "GetChar.\n");
+          char charGetted = synchconsole->SynchGetChar();
+          machine->WriteRegister(2, (int) charGetted);
+          break;
+        }
         default: {
-          printf("Unexpected user mode exception %d %d\n", which, type);
-          ASSERT(FALSE);
+          
+          printf("Unexpected user mode exception %d %d %d\n", which, type, machine->ReadRegister (2));
+          interrupt->Halt();
+          //ASSERT(FALSE);
         }
       }
     }
@@ -92,3 +125,4 @@ ExceptionHandler (ExceptionType which)
     UpdatePC ();
     // End of addition
 }
+
