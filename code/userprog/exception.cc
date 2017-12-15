@@ -37,11 +37,11 @@ void copyStringFromMachine(int from, char *to, unsigned size){
   }
 }
 
-// void copyStringToMachine( int reg, char *buf, unsigned size){
-//   unsigned int i = 0;
-//   while((i < size) && (machine->WriteMem(reg+i, 1,(int)buf[i])))
-//     i++;
-// }
+void copyStringToMachine(int to, char *from, unsigned size){
+  unsigned int i = 0;
+  while((i < size) && (machine->WriteMem(to+i, 1,(int)from[i])))
+    i++;
+}
 
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
@@ -108,8 +108,27 @@ ExceptionHandler (ExceptionType which)
         }
         case SC_GetChar: {
           DEBUG ('p', "GetChar.\n");
-          char charGetted = synchconsole->SynchGetChar();
-          machine->WriteRegister(2, (int) charGetted);
+          char charGot = synchconsole->SynchGetChar();
+          machine->WriteRegister(2, (int) charGot);
+          break;
+        }
+        case SC_GetString: {
+          DEBUG ('p', "GetString.\n");
+          char charGot[MAX_STRING_SIZE]; 
+          synchconsole->SynchGetString(charGot, MAX_STRING_SIZE);
+          copyStringToMachine(machine->ReadRegister(4), charGot, machine->ReadRegister(5));
+          break;
+        }
+        case SC_PutInt: {
+          DEBUG ('p', "PutInt.\n");
+          synchconsole->SynchPutInt(machine->ReadRegister(4));
+          break;
+        }
+        case SC_GetInt: {
+          DEBUG ('p', "GetInt.\n");
+          int i; 
+          synchconsole->SynchGetInt(&i);
+          machine->WriteRegister(2, i);
           break;
         }
         default: {
