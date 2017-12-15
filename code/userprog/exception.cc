@@ -113,9 +113,8 @@ ExceptionHandler (ExceptionType which)
           break;
         }
         default: {
-          
-          printf("Unexpected user mode exception %d %d %d\n", which, type, machine->ReadRegister (2));
           interrupt->Halt();
+          //printf("Unexpected user mode exception %d %d %d\n", which, type, machine->ReadRegister (2));
           //ASSERT(FALSE);
         }
       }
