@@ -84,11 +84,21 @@ int SynchConsole::SynchGetInt()
 
 int SynchConsole::UserThreadCreate(void f(void * arg), void * arg)
 {
-	currentThread.Fork();	
-	return 0;
+	bool ok = true;
+	if(ok)
+	{
+		Thread * newThread = new Thread("usethr");
+		newThread->Fork((VoidFunctionPtr)f,(int)arg );
+		return 0;
+	}
+	else
+	{
+			return -1;
+	}
+
 }
 
 void SynchConsole::UserThreadExit()
 {
-
+	currentThread->Finish();
 }
