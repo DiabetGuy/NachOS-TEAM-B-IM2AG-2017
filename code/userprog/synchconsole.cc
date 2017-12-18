@@ -39,7 +39,7 @@ char SynchConsole::SynchGetChar()
 
 void SynchConsole::SynchPutString(const char s[])
 {
-	for(int i = 0; s[i] != '\0' && i < MAX_STRING_SIZE; i++)
+	for(int i = 0; s[i] != '\0' && i < MAX_STRING_SIZE && s[i] != EOF; i++)
 	{
 		this->SynchPutChar(s[i]);
 	}
