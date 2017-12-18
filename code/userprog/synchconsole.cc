@@ -63,9 +63,10 @@ void SynchConsole::SynchPutInt(int n)
 	SynchPutString(str);
 }
 
-void SynchConsole::SynchGetInt(int *n)
+int SynchConsole::SynchGetInt()
 {
 	char c;
+	int n = 0 ;
   char str[15];
   int i = 0;
 
@@ -77,6 +78,6 @@ void SynchConsole::SynchGetInt(int *n)
 		i++;
 	}
 	str[i] = '\0';
-	sscanf(str, "%d", n);
-
+	sscanf(str, "%d", &n);
+	return n;
 }

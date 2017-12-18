@@ -3,8 +3,8 @@
 int main()
 {
 	int n;
-	GetInt(&n);
-	
+	n = GetInt();
+
 	PutInt(n);
 
 	Halt();
