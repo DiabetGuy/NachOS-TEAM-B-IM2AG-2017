@@ -1,5 +1,5 @@
 # Copyright (c) 1992 The Regents of the University of California.
-# All rights reserved.  See copyright.h for copyright notice and limitation 
+# All rights reserved.  See copyright.h for copyright notice and limitation
 # of liability and disclaimer of warranty provisions.
 # Copyright (c) 2011 Vincent Danjean <Vincent.Danjean@imag.fr>
 #
@@ -84,10 +84,12 @@ USERPROG_LIBS=start.S
 USER_FLAVORS=step2
 $(eval $(call define-flavor,step2,userprog filesys-stub,synchconsole.cc))
 
+USER_FLAVORS=step3
+$(eval $(call define-flavor,step3,userprog filesys-stub,synchconsole.cc userthread.cc))
+
 # $(eval $(call define-flavor,step5,userprog filesys,\
 #     synchconsole.cc userthread.cc))
 # $(eval $(call define-flavor,mynetwork,userprog filesys-stub network, \
 #     synchconsole.cc userthread.cc))
 # $(eval $(call define-flavor,final,userprog filesys network,\
 #     synchconsole.cc userthread.cc))
-

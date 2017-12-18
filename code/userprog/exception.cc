@@ -132,6 +132,15 @@ ExceptionHandler (ExceptionType which)
           machine->WriteRegister(2, i);
           break;
         }
+        case SC_UserThreadCreate: {
+          DEBUG ('p', "UserThreadCreate.\n");
+          do_UserThreadCreate(machine->ReadRegister(4), machine->ReadRegister(5));
+          break;
+        }
+        case SC_UserThreadExit: {
+          DEBUG ('p', "GetUserThreadExit.\n");
+          break;
+        }
         default: {
           interrupt->Halt();
           //printf("Unexpected user mode exception %d %d %d\n", which, type, machine->ReadRegister (2));
