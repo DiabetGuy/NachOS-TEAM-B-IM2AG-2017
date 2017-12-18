@@ -52,6 +52,8 @@ class SynchConsole {
 		// Unix fgets(3S)
 		void SynchPutInt(int n);
 		int SynchGetInt();
+		void UserThreadExit();
+		int UserThreadCreate(void f(void * arg), void * arg);
 	private:
 		Console *console;
 };

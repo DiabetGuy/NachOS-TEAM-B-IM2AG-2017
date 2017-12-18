@@ -81,3 +81,14 @@ int SynchConsole::SynchGetInt()
 	sscanf(str, "%d", &n);
 	return n;
 }
+
+int SynchConsole::UserThreadCreate(void f(void * arg), void * arg)
+{
+	currentThread.Fork();	
+	return 0;
+}
+
+void SynchConsole::UserThreadExit()
+{
+
+}
