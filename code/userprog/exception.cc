@@ -114,7 +114,7 @@ ExceptionHandler (ExceptionType which)
         }
         case SC_GetString: {
           DEBUG ('p', "GetString.\n");
-          char charGot[MAX_STRING_SIZE]; 
+          char charGot[MAX_STRING_SIZE];
           synchconsole->SynchGetString(charGot, MAX_STRING_SIZE);
           copyStringToMachine(machine->ReadRegister(4), charGot, machine->ReadRegister(5));
           break;
@@ -126,7 +126,7 @@ ExceptionHandler (ExceptionType which)
         }
         case SC_GetInt: {
           DEBUG ('p', "GetInt.\n");
-          int i; 
+          int i;
           synchconsole->SynchGetInt(&i);
           machine->WriteRegister(2, i);
           break;
@@ -143,4 +143,3 @@ ExceptionHandler (ExceptionType which)
     UpdatePC ();
     // End of addition
 }
-

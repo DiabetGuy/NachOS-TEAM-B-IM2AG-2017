@@ -4,6 +4,7 @@ int main()
 {
 	int n;
 	GetInt(&n);
+	
 	PutInt(n);
 
 	Halt();
