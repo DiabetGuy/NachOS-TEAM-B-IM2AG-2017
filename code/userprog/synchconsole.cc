@@ -12,6 +12,9 @@ static void WriteDone(int arg) { writeDone->V(); }
 static Semaphore *putted;
 static Semaphore *getted;
 
+static Semaphore *puttinged;
+static Semaphore *gettedinged;
+
 char buffer[MAX_STRING_SIZE];
 
 SynchConsole::SynchConsole(char *readFile, char *writeFile)
@@ -19,8 +22,10 @@ SynchConsole::SynchConsole(char *readFile, char *writeFile)
 	readAvail = new Semaphore("read avail", 0);
 	writeDone = new Semaphore("write done", 0);
 	console = new Console(readFile, writeFile, ReadAvail, WriteDone, 0);
-	putted = new Semaphore("putting...", 0);
-	getted = new Semaphore("getting...", 0);
+	putted = new Semaphore("putting...", 1);
+	getted = new Semaphore("getting...", 1);
+	puttinged = new Semaphore("putting...", 1);
+	gettedinged = new Semaphore("getting...", 1);
 }
 
 SynchConsole::~SynchConsole()
@@ -51,14 +56,17 @@ char SynchConsole::SynchGetChar()
 
 void SynchConsole::SynchPutString(const char s[])
 {
+	puttinged->P();
 	for(int i = 0; s[i] != '\0' && i < MAX_STRING_SIZE && s[i] != EOF; i++)
 	{
 		this->SynchPutChar(s[i]);
 	}
+	puttinged->V();
 }
 
 void SynchConsole::SynchGetString(char *s, int n)
 {
+gettedinged->P();
 	int i;
 	for (i = 0; i < n; i++) {
 		s[i] = this->SynchGetChar();
@@ -66,6 +74,7 @@ void SynchConsole::SynchGetString(char *s, int n)
 			break;
 	}
 	s[i]= '\0';
+gettedinged->V();
 }
 
 void SynchConsole::SynchPutInt(int n)
