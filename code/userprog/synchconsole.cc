@@ -9,6 +9,9 @@ static Semaphore *writeDone;
 static void ReadAvail(int arg) { readAvail->V(); }
 static void WriteDone(int arg) { writeDone->V(); }
 
+static Semaphore *putted;
+static Semaphore *getted;
+
 char buffer[MAX_STRING_SIZE];
 
 SynchConsole::SynchConsole(char *readFile, char *writeFile)
@@ -16,6 +19,8 @@ SynchConsole::SynchConsole(char *readFile, char *writeFile)
 	readAvail = new Semaphore("read avail", 0);
 	writeDone = new Semaphore("write done", 0);
 	console = new Console(readFile, writeFile, ReadAvail, WriteDone, 0);
+	putted = new Semaphore("putting...", 0);
+	getted = new Semaphore("getting...", 0);
 }
 
 SynchConsole::~SynchConsole()
@@ -27,15 +32,21 @@ SynchConsole::~SynchConsole()
 
 void SynchConsole::SynchPutChar(const char ch)
 {
+	putted->P();
 	console->PutChar(ch);
 	writeDone->P();
+	putted->V();
 }
 
 char SynchConsole::SynchGetChar()
 {
+	getted->P();
+	char c;
 	readAvail->P();
-	return console->GetChar();
-	
+	c = console->GetChar();
+	getted->V();
+	return c;
+
 }
 
 void SynchConsole::SynchPutString(const char s[])
