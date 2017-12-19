@@ -46,3 +46,9 @@ int do_UserThreadCreate(int f, int arg)
       return -1;
   }
 }
+
+
+void do_UserThreadExit()
+{
+  newthread->Finish();
+}

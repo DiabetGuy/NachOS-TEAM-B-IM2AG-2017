@@ -139,6 +139,7 @@ ExceptionHandler (ExceptionType which)
         }
         case SC_UserThreadExit: {
           DEBUG ('p', "GetUserThreadExit.\n");
+          do_UserThreadExit();
           break;
         }
         default: {

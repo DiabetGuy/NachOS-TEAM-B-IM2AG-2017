@@ -35,6 +35,7 @@ char SynchConsole::SynchGetChar()
 {
 	readAvail->P();
 	return console->GetChar();
+	
 }
 
 void SynchConsole::SynchPutString(const char s[])

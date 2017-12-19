@@ -110,7 +110,7 @@ class Thread
     }
     void Print ()
     {
-	printf ("%s, ", name);GetNewThreadId
+	printf ("%s, ", name);
     }
 
   private:
