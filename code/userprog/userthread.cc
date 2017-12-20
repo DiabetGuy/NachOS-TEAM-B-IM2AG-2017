@@ -50,5 +50,5 @@ int do_UserThreadCreate(int f, int arg)
 
 void do_UserThreadExit()
 {
-  newthread->Finish();
+  currentThread->Finish ();
 }

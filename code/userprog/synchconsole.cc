@@ -14,7 +14,9 @@ static Semaphore *getted;
 
 static Semaphore *puttinged;
 static Semaphore *gettedinged;
-
+static Semaphore *puttinginged;
+static Semaphore *gettedinginged;
+static Semaphore *exited;
 char buffer[MAX_STRING_SIZE];
 
 SynchConsole::SynchConsole(char *readFile, char *writeFile)
@@ -26,6 +28,9 @@ SynchConsole::SynchConsole(char *readFile, char *writeFile)
 	getted = new Semaphore("getting...", 1);
 	puttinged = new Semaphore("putting...", 1);
 	gettedinged = new Semaphore("getting...", 1);
+	exited = new Semaphore("exiting...", 1);
+	puttinginged = new Semaphore("exiting...", 1);
+	gettedinginged = new Semaphore("exiting...", 1);
 }
 
 SynchConsole::~SynchConsole()
@@ -79,13 +84,16 @@ gettedinged->V();
 
 void SynchConsole::SynchPutInt(int n)
 {
+	puttinginged->P();
 	char str[15];
     snprintf(str,10,"%d",n);
 	SynchPutString(str);
+	puttinginged->V();
 }
 
 int SynchConsole::SynchGetInt()
 {
+	gettedinginged->P();
 	char c;
 	int n = 0 ;
   char str[15];
@@ -100,10 +108,13 @@ int SynchConsole::SynchGetInt()
 	}
 	str[i] = '\0';
 	sscanf(str, "%d", &n);
+	gettedinginged->V();
 	return n;
 }
 
 void SynchConsole::UserThreadExit()
 {
+	exited->P();
 	currentThread->Finish();
+	exited->V();
 }
