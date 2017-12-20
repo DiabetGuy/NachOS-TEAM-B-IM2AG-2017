@@ -134,12 +134,18 @@ ExceptionHandler (ExceptionType which)
         }
         case SC_UserThreadCreate: {
           DEBUG ('p', "UserThreadCreate.\n");
-          do_UserThreadCreate(machine->ReadRegister(4), machine->ReadRegister(5));
+          int id = do_UserThreadCreate(machine->ReadRegister(4), machine->ReadRegister(5));
+          machine->WriteRegister(2,id);
           break;
         }
         case SC_UserThreadExit: {
           DEBUG ('p', "GetUserThreadExit.\n");
           do_UserThreadExit();
+          break;
+        }
+        case SC_UserThreadJoin: {
+          DEBUG ('p', "GetUserThreadJoin.\n");
+          do_UserThreadJoin(machine->ReadRegister(4));
           break;
         }
         default: {

@@ -39,7 +39,8 @@ int do_UserThreadCreate(int f, int arg)
     newthread->Fork(StartUserThread,(int) f1 );
 
     // StartUserThread(f);
-    return 0;
+
+    return newthread->id;
   }
   else
   {
@@ -50,5 +51,11 @@ int do_UserThreadCreate(int f, int arg)
 
 void do_UserThreadExit()
 {
+  joint[currentThread->id]->V();
   currentThread->Finish ();
+}
+
+void do_UserThreadJoin(int id)
+{
+  joint[id]->P();
 }

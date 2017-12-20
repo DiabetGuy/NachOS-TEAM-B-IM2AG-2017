@@ -11,12 +11,13 @@ static void WriteDone(int arg) { writeDone->V(); }
 
 static Semaphore *putted;
 static Semaphore *getted;
-
 static Semaphore *puttinged;
 static Semaphore *gettedinged;
 static Semaphore *puttinginged;
 static Semaphore *gettedinginged;
 static Semaphore *exited;
+
+
 char buffer[MAX_STRING_SIZE];
 
 SynchConsole::SynchConsole(char *readFile, char *writeFile)

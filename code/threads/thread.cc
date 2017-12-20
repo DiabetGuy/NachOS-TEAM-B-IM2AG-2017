@@ -1,4 +1,4 @@
-// thread.cc 
+// thread.cc
 //      Routines to manage threads.  There are four main operations:
 //
 //      Fork -- create a thread to run a procedure concurrently
@@ -38,6 +38,7 @@ Thread::Thread (const char *threadName)
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    id = threadCounter++;
 #ifdef USER_PROGRAM
     space = NULL;
     // FBT: Need to initialize special registers of simulator to 0
