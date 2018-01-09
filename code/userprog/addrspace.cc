@@ -46,6 +46,32 @@ SwapHeader (NoffHeader * noffH)
     noffH->uninitData.inFileAddr = WordToHost (noffH->uninitData.inFileAddr);
 }
 
+static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, int position, TranslationEntry *pageTable, unsigned numPages)
+{
+    TranslationEntry* oldPageTable = machine->pageTable;
+    unsigned int oldPageTableSize  = machine->pageTableSize;
+
+    machine->pageTable = pageTable;
+    machine->pageTableSize = numPages;
+
+    char* buffer = new char[numBytes];
+
+    executable->ReadAt(buffer, numBytes, position);
+    IntStatus oldLevel = interrupt->SetLevel (IntOff);
+    int i;
+    for (i = 0; i < numBytes; ++i)
+    {
+        machine->WriteMem(virtualaddr, 1, buffer[i]);
+        virtualaddr += sizeof(char);
+    }
+    delete[] buffer;
+
+    machine->pageTable = oldPageTable;
+    machine->pageTableSize = oldPageTableSize;
+    (void) interrupt->SetLevel (oldLevel);
+}
+
+
 //----------------------------------------------------------------------
 // AddrSpace::AddrSpace
 //      Create an address space to run a user program.
@@ -90,7 +116,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
     for (i = 0; i < numPages; i++)
       {
 	  pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	  pageTable[i].physicalPage = i;
+	  pageTable[i].physicalPage = i+1;
 	  pageTable[i].valid = TRUE;
 	  pageTable[i].use = FALSE;
 	  pageTable[i].dirty = FALSE;
@@ -106,19 +132,13 @@ AddrSpace::AddrSpace (OpenFile * executable)
 // then, copy in the code and data segments into memory
     if (noffH.code.size > 0)
       {
-	  DEBUG ('a', "Initializing code segment, at 0x%x, size %d\n",
-		 noffH.code.virtualAddr, noffH.code.size);
-	  executable->ReadAt (&(machine->mainMemory[noffH.code.virtualAddr]),
-			      noffH.code.size, noffH.code.inFileAddr);
+	  DEBUG ('a', "Initializing code segment, at 0x%x, size %d\n", noffH.code.virtualAddr, noffH.code.size);
+    ReadAtVirtual(executable,noffH.code.virtualAddr, noffH.code.size, noffH.code.inFileAddr, pageTable, numPages);
       }
     if (noffH.initData.size > 0)
       {
-	  DEBUG ('a', "Initializing data segment, at 0x%x, size %d\n",
-		 noffH.initData.virtualAddr, noffH.initData.size);
-	  executable->ReadAt (&
-			      (machine->mainMemory
-			       [noffH.initData.virtualAddr]),
-			      noffH.initData.size, noffH.initData.inFileAddr);
+	  DEBUG ('a', "Initializing data segment, at 0x%x, size %d\n", noffH.initData.virtualAddr, noffH.initData.size);
+    ReadAtVirtual(executable,noffH.initData.virtualAddr, noffH.initData.size, noffH.initData.inFileAddr, pageTable, numPages);
       }
 
     spaceSem = new Semaphore("Space", 1);
