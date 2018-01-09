@@ -3,7 +3,7 @@ int tok=0;
 void thread_loop(void *arg){
 	PutString("Zouk");
 	tok=1;
-	//UserThreadExit();//Quitte
+	UserThreadExit();//Quitte
 }
 
 int main()
@@ -12,14 +12,15 @@ int main()
 	int id1 = UserThreadCreate(thread_loop, 0);
 	int id2 = UserThreadCreate(thread_loop, 0);
 	int id3 = UserThreadCreate(thread_loop, 0);
+
 	//UserThreadCreate(thread_loop, (void*)(&deux));
 	// long long int i=0;
-	PutChar('\n');
+	/*PutChar('\n');
 	PutInt(id1);
 	PutChar('\n');
 	PutInt(id2);
 	PutChar('\n');
-	PutInt(id3);
+	PutInt(id3);*/
 	UserThreadJoin(id1);
 	UserThreadJoin(id2);
 	UserThreadJoin(id3);

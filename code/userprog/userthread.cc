@@ -36,8 +36,8 @@ int do_UserThreadCreate(int f, int arg)
   if(ok)
   {
     newthread = new Thread("usethr");
+    joint[newthread->id]->P();
     newthread->Fork(StartUserThread,(int) f1 );
-
     // StartUserThread(f);
 
     return newthread->id;
