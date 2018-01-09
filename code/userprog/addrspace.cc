@@ -40,7 +40,8 @@ SwapHeader (NoffHeader * noffH)
     noffH->initData.size = WordToHost (noffH->initData.size);
     noffH->initData.virtualAddr = WordToHost (noffH->initData.virtualAddr);
     noffH->initData.inFileAddr = WordToHost (noffH->initData.inFileAddr);
-    noffH->uninitData.size = WordToHost (noffH->uninitData.size);
+    noffH->uninitData.size = WordToHost
+     (noffH->uninitData.size);
     noffH->uninitData.virtualAddr =
 	WordToHost (noffH->uninitData.virtualAddr);
     noffH->uninitData.inFileAddr = WordToHost (noffH->uninitData.inFileAddr);
@@ -94,6 +95,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
 
     executable->ReadAt ((char *) &noffH, sizeof (noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) &&
+
 	(WordToHost (noffH.noffMagic) == NOFFMAGIC))
 	SwapHeader (&noffH);
     ASSERT (noffH.noffMagic == NOFFMAGIC);
