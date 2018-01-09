@@ -6,13 +6,9 @@ void thread_loop(void *arg){
 	int i = 0;
 	//char *str = "ABCDE";
 	PutString("a");
-	i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;
-	i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;
-	i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;
+	for(i=0;i<30;i++);
 	PutString("b");
-	i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;
-	i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;
-	i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;i++;
+	for(i=0;i<30;i++);
 	PutString("c");
 
   UserThreadExit();
