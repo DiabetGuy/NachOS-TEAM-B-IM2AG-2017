@@ -1,6 +1,4 @@
-#include "copyright.h"
-#include "utility.h"
-#include "bitmap.h"
+#include "frameprovider.h"
 
 FrameProvider::FrameProvider(int NumPhysPages, int PageSize, char* mainMemory)
 {
