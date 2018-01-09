@@ -14,7 +14,12 @@ int main()
     ids[i] = UserThreadCreate(thread_loop, 0);
   }
   for(i=0;i<TAILLE;i++){
-  	UserThreadJoin(ids[i]);
+		if(ids[i]!= -1){
+			UserThreadJoin(ids[i]);
+	  }
+		else{
+			PutString("Pas cree\n");
+		}
   }
 	return 0;
 }

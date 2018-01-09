@@ -22,6 +22,7 @@
 
 #include <strings.h>		/* for bzero */
 
+
 //----------------------------------------------------------------------
 // SwapHeader
 //      Do little endian to big endian conversion on the bytes in the
@@ -120,6 +121,10 @@ AddrSpace::AddrSpace (OpenFile * executable)
 			      noffH.initData.size, noffH.initData.inFileAddr);
       }
 
+    spaceSem = new Semaphore("Space", 1);
+    bitMap = new BitMap(PROCESS_THREADS_NUMBER);
+    bitMap->Mark(0);
+    stackBeginning = numPages * PageSize - 16;
 }
 
 //----------------------------------------------------------------------
@@ -132,6 +137,8 @@ AddrSpace::~AddrSpace ()
   // LB: Missing [] for delete
   // delete pageTable;
   delete [] pageTable;
+  delete spaceSem;
+  delete bitMap;
   // End of modification
 }
 
@@ -195,4 +202,10 @@ AddrSpace::RestoreState ()
 {
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
+}
+
+int
+AddrSpace::getSingleStackSize()
+{
+  return UserStackSize/PROCESS_THREADS_NUMBER;
 }

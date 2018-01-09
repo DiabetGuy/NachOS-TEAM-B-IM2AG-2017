@@ -12,46 +12,54 @@ class fa
 public:
   int f;
   int arg;
-  fa(int _f, int _arg)
+  int stackNum;
+  fa(int _f, int _arg, int sn)
   {
      f = _f;
      arg = _arg;
+     stackNum = sn;
   }
 };
 
 static void StartUserThread(int f)
 {
+  int sp;
   machine->WriteRegister(4, ((fa*) f)->arg);
   machine->WriteRegister(PCReg, ((fa*) f)->f);
   machine->WriteRegister(NextPCReg, ((fa*) f)->f+4);
+  sp = currentThread->space->stackBeginning - currentThread->space->getSingleStackSize() * ((fa*) f)->stackNum;
+  machine->WriteRegister(StackReg, sp);
 
   machine->Run();
 }
 
 int do_UserThreadCreate(int f, int arg)
 {
-  bool ok = true;
-  fa *f1 = new fa(f, arg);
+    int stackNum;
 
-  if(ok)
-  {
+    currentThread->space->spaceSem->P();
+    stackNum = currentThread->space->bitMap->Find();
+    currentThread->space->spaceSem->V();
+
+    if (stackNum == -1){
+      return -1;
+    }
+
+    fa *f1 = new fa(f, arg, stackNum);
+
     newthread = new Thread("usethr");
+    newthread->stackNum = stackNum;
     joint[newthread->id]->P();
     newthread->Fork(StartUserThread,(int) f1 );
-    // StartUserThread(f);
 
     return newthread->id;
-  }
-  else
-  {
-      return -1;
-  }
 }
 
 
 void do_UserThreadExit()
 {
   joint[currentThread->id]->V();
+  currentThread->space->bitMap->Clear(currentThread->stackNum);
   currentThread->Finish ();
 }
 
