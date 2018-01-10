@@ -1,9 +1,9 @@
-// bitmap.c 
+// bitmap.c
 //      Routines to manage a bitmap -- an array of bits each of which
 //      can be either on or off.  Represented as an array of integers.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
@@ -167,4 +167,10 @@ void
 BitMap::WriteBack (OpenFile * file)
 {
     file->WriteAt ((char *) map, numWords * sizeof (unsigned), 0);
+}
+
+int
+BitMap::GetSize ()
+{
+    return numBits;
 }

@@ -117,14 +117,14 @@ AddrSpace::AddrSpace (OpenFile * executable)
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++)
       {
-	  pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	  pageTable[i].physicalPage = i+1;
-	  pageTable[i].valid = TRUE;
-	  pageTable[i].use = FALSE;
-	  pageTable[i].dirty = FALSE;
-	  pageTable[i].readOnly = FALSE;	// if the code segment was entirely on
-	  // a separate page, we could set its
-	  // pages to be read-only
+    	  pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+    	  pageTable[i].physicalPage = i+1;
+    	  pageTable[i].valid = TRUE;
+    	  pageTable[i].use = FALSE;
+    	  pageTable[i].dirty = FALSE;
+    	  pageTable[i].readOnly = FALSE;	// if the code segment was entirely on
+    	  // a separate page, we could set its
+    	  // pages to be read-only
       }
 
 // zero out the entire address space, to zero the unitialized data segment
