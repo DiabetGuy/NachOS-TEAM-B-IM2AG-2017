@@ -114,6 +114,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
     DEBUG ('a', "Initializing address space, num pages %d, size %d\n",
 	   numPages, size);
 // first, set up the translation
+    FrameProvider fp = new 
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++)
       {

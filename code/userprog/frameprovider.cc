@@ -25,11 +25,11 @@ int FrameProvider::GetEmptyFrameRandom()
 {
   int nbClear = NumClear ();
   int i, j=0;
-	int nombreAleatoire = 0;
+	int frameNb = 0;
   int nbFrames = framesMap->GetSize();
 	srand(time(NULL)); // initialisation de rand
-	nombreAleatoire = rand()%(nbClear) +1;
-  for(i=0; i<nbFrames || j == nombreAleatoire; i++){
+	frameNb = rand()%(nbClear) +1;
+  for(i=0; i<nbFrames || j == frameNb; i++){
     if (!Test (i)) j++;
   }
   bzero(memory + frameNb * physPageSize, physPageSize);
