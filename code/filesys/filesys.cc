@@ -83,21 +83,21 @@ FileSystem::FileSystem(bool format)
     if (format) {
         BitMap *freeMap = new BitMap(NumSectors);
         Directory *directory = new Directory(NumDirEntries);
-	FileHeader *mapHdr = new FileHeader;
-	FileHeader *dirHdr = new FileHeader;
+      	FileHeader *mapHdr = new FileHeader;
+      	FileHeader *dirHdr = new FileHeader;
 
         DEBUG('f', "Formatting the file system.\n");
 
     // First, allocate space for FileHeaders for the directory and bitmap
     // (make sure no one else grabs these!)
-	freeMap->Mark(FreeMapSector);
-	freeMap->Mark(DirectorySector);
+      	freeMap->Mark(FreeMapSector);
+      	freeMap->Mark(DirectorySector);
 
     // Second, allocate space for the data blocks containing the contents
     // of the directory and bitmap files.  There better be enough space!
 
-	ASSERT(mapHdr->Allocate(freeMap, FreeMapFileSize));
-	ASSERT(dirHdr->Allocate(freeMap, DirectoryFileSize));
+      	ASSERT(mapHdr->Allocate(freeMap, FreeMapFileSize));
+      	ASSERT(dirHdr->Allocate(freeMap, DirectoryFileSize));
 
     // Flush the bitmap and directory FileHeaders back to disk
     // We need to do this before we can "Open" the file, since open
@@ -105,8 +105,8 @@ FileSystem::FileSystem(bool format)
     // on it!).
 
         DEBUG('f', "Writing headers back to disk.\n");
-	mapHdr->WriteBack(FreeMapSector);
-	dirHdr->WriteBack(DirectorySector);
+      	mapHdr->WriteBack(FreeMapSector);
+      	dirHdr->WriteBack(DirectorySector);
 
     // OK to open the bitmap and directory files now
     // The file system operations assume these two files are left open
@@ -114,6 +114,8 @@ FileSystem::FileSystem(bool format)
 
         freeMapFile = new OpenFile(FreeMapSector);
         rootDirectoryFile = new OpenFile(DirectorySector);
+        directory->Add(".", DirectorySector);
+        directory->Add("..", DirectorySector);
         currentDirectoryFile = rootDirectoryFile; //At first the root directory is the current one
 
     // Once we have the files "open", we can write the initial version
@@ -123,18 +125,19 @@ FileSystem::FileSystem(bool format)
     // to hold the file data for the directory and bitmap.
 
         DEBUG('f', "Writing bitmap and directory back to disk.\n");
-	freeMap->WriteBack(freeMapFile);	 // flush changes to disk
-	directory->WriteBack(rootDirectoryFile);
+      	freeMap->WriteBack(freeMapFile);	 // flush changes to disk
+      	directory->WriteBack(rootDirectoryFile);
 
-	if (DebugIsEnabled('f')) {
-	    freeMap->Print();
-	    directory->Print();
+      	if (DebugIsEnabled('f')) {
+      	    freeMap->Print();
+      	    directory->Print();
+      	}
 
         delete freeMap;
-	delete directory;
-	delete mapHdr;
-	delete dirHdr;
-	}
+        delete directory;
+        delete mapHdr;
+        delete dirHdr;
+
     } else {
     // if we are not formatting the disk, just open the files representing
     // the bitmap and directory; these are left open while Nachos is running
@@ -226,8 +229,7 @@ FileSystem::Create(const char *name, int initialSize)
 bool
 FileSystem::CreateDirectory(const char *name)
 {
-  Directory *currentDirectory;
-  Directory *newDirectory;
+  Directory *currentDirectory, *newDirectory;
   BitMap *freeMap;
   FileHeader *hdr;
   int sector;
@@ -258,27 +260,23 @@ FileSystem::CreateDirectory(const char *name)
         success = TRUE;
         // everthing worked, flush all changes back to disk
         dirHdr->WriteBack(dirSector);
+
+        newDirectoryFile = new OpenFile(dirSector);
+        newDirectory->Add(".", dirSector);
+        newDirectory->Add("..", currentDirectoryFile->GetSector());
+        newDirectory->WriteBack(newDirectoryFile);
+
         currentDirectory->WriteBack(currentDirectoryFile);
         freeMap->WriteBack(freeMapFile);
       }
         delete dirHdr;
+        delete newDirectory;
     }
       delete freeMap;
   }
   delete currentDirectory;
-  delete newDirectory;
 
   return success;
-
-  ASSERT(dirHdr->Allocate(freeMap, DirectoryFileSize));
-  dirHdr->WriteBack(DirectorySector);
-  newDirectory->WriteBack(rootDirectoryFile);
-  if (DebugIsEnabled('f')) {
-  newDirectory->Print();
-
-  delete currentDirectory;
-  delete newDirectory;
-  delete dirHdr;
 }
 
 //----------------------------------------------------------------------
@@ -295,16 +293,67 @@ OpenFile *
 FileSystem::Open(const char *name)
 {
     Directory *directory = new Directory(NumDirEntries);
-    OpenFile *openFile = NULL;
-    int sector;
 
     DEBUG('f', "Opening file %s\n", name);
     directory->FetchFrom(currentDirectoryFile);
-    sector = directory->Find(name);
-    if (sector >= 0)
-	openFile = new OpenFile(sector);	// name was found in directory
+    OpenFile* openFile = OpenFromDirectory(name, directory);
+
     delete directory;
-    return openFile;				// return NULL if not found
+
+    return openFile;	// return NULL if not found
+}
+
+//----------------------------------------------------------------------
+// FileSystem::OpenPath
+// 	Open a file from a path for reading and writing.
+//	To open a file:
+//	  Find the location of the file's header, using the directory
+//	  Bring the header into memory
+//
+//	"path" -- the path of the file to be opened
+//----------------------------------------------------------------------
+
+OpenFile *
+FileSystem::OpenPath(const char *path) //TODO : replace Open by OpenPath //maybe parse path first then iterate through a list of files name
+{
+  Directory *directory = new Directory(NumDirEntries);
+  OpenFile *openFile = NULL;
+  char name[FileNameMaxLen];
+  int i = 0, j = 0;
+
+  if (path[0] == '/') {
+    openFile = rootDirectoryFile; //from root directory
+    i++;
+  } else {
+    openFile = currentDirectoryFile; //from current directory
+  }
+  directory->FetchFrom(openFile);
+
+  for (i; path[i] != '\0', i++) {
+    name[j] = path[i];
+    j++;
+
+    switch (path[i+1]) {
+      case '/':
+        i++; //avoid to iterate for '/' and do nothing
+      case '\0':
+        name[j] = '\0'; j = 0;
+        if (openFile = OpenFromDirectory(name, directory)) {
+          if (directory.isFileDirectory(name)) {
+            directory->FetchFrom(openFile);
+          } else {
+            return openFile; //return a file
+          }
+        } else {
+          return NULL; //next directory was not found
+        }
+        break;
+    }
+  }
+
+  delete directory;
+
+  return openFile; //return the last directory
 }
 
 //----------------------------------------------------------------------
@@ -351,6 +400,71 @@ FileSystem::Remove(const char *name)
     delete fileHdr;
     delete directory;
     delete freeMap;
+    return TRUE;
+}
+
+
+//----------------------------------------------------------------------
+// FileSystem::RemoveDirectory
+// 	Delete a directory from the file system.  This requires:
+//	    Remove it from the directory
+//	    Delete the space for its header
+//	    Delete the space for its data blocks
+//	    Write changes to directory, bitmap back to disk
+//
+//	Return TRUE if the directory was deleted, FALSE if the file wasn't
+//	in the file system.
+//
+//	"name" -- the text name of the directory to be removed
+//----------------------------------------------------------------------
+
+bool
+FileSystem::RemoveDirectory(const char *name)
+{
+    Directory *currentDirectory, *toRemoveDirectory;
+    BitMap *freeMap;
+    FileHeader *fileHdr;
+    int sector;
+
+    currentDirectory = new Directory(NumDirEntries);
+    currentDirectory->FetchFrom(currentDirectoryFile);
+
+    sector = currentDirectory->Find(name);
+    if (sector == -1) {
+       delete currentDirectory;
+       delete toRemoveDirectory;
+       return FALSE;			 // file not found
+    }
+
+    toRemoveDirectory = new Directory(NumDirEntries);
+    OpenFile *toRemoveDirectoryFile = new OpenFile(sector);
+    toRemoveDirectory->FetchFrom(toRemoveDirectoryFile);
+
+    if (!toRemoveDirectory->isEmpty() || sector == rootDirectoryFile.GetSector()) {
+      delete currentDirectory;
+      delete toRemoveDirectory;
+      return FALSE;         //directory is not empty or directory is the root directory
+    }
+
+
+    fileHdr = new FileHeader;
+    fileHdr->FetchFrom(sector);
+
+    freeMap = new BitMap(NumSectors);
+    freeMap->FetchFrom(freeMapFile);
+
+    fileHdr->Deallocate(freeMap);  		// remove data blocks
+    freeMap->Clear(sector);			// remove header block
+    directory->Remove(name);
+
+    freeMap->WriteBack(freeMapFile);		// flush to disk
+    currentDirectory->WriteBack(currentDirectoryFile);        // flush to disk
+
+    delete fileHdr;
+    delete currentDirectory;
+    delete toRemoveDirectory;
+    delete freeMap;
+
     return TRUE;
 }
 
@@ -407,7 +521,8 @@ FileSystem::Print()
     delete directory;
 }
 
-void ChangeDirectory(const char* name) {
+void
+FileSystem::ChangeDirectory(const char* name) { //TODO : replace ChangeDirectory with ChangeDirectoryPath
     Directory *directory = new Directory(NumDirEntries);
     directory->FetchFrom(currentDirectoryFile);
 
@@ -416,4 +531,38 @@ void ChangeDirectory(const char* name) {
     }
 
     delete directory;
+}
+
+void
+FileSystem::ChangeDirectoryPath(const char* path) {
+  OpenFile *openFile = OpenPath(path);
+  if (openFile && /*openFile is a directory*/) { //TODO change filehdr to know from it if the corresponding file is a directory or not
+    currentDirectoryFile = openFile;
+  }
+}
+
+
+
+//----------------------------------------------------------------------
+// FileSystem::OpenFromDirectory
+// 	Open a file from a directory for reading and writing.
+//	To open a file:
+//	  Find the location of the file's header, using the directory
+//	  Bring the header into memory
+//
+//	"name" -- the text name of the file to be opened
+//  "directory" -- the directory from which the file should be open from
+//----------------------------------------------------------------------
+
+OpenFile *
+FileSystem::OpenFromDirectory(const char *name, Directory *directory)
+{
+    OpenFile *openFile = NULL;
+    int sector = directory->Find(name);
+
+    if (sector >= 0) { // name was found in directory
+	     return openFile = new OpenFile(sector);
+    }
+
+    return NULL; // name was not found in directory
 }

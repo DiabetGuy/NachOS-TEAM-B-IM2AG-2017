@@ -75,6 +75,8 @@ class Directory {
 					//  of the directory -- all the file
 					//  names and their contents.
 
+    bool isEmpty(); //if there any files or directory (not ""." or "..") inside then FALSE
+
 
   private:
     int tableSize;			// Number of directory entries

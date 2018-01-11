@@ -81,13 +81,19 @@ class FileSystem {
 
     OpenFile* Open(const char *name); 	// Open a file (UNIX open)
 
+    OpenFile* OpenPath(const char *path); 	// Open a file from a path
+
     bool Remove(const char *name); 	// Delete a file (UNIX unlink)
+
+    bool RemoveDirectory(const char *name); 	// Delete a directory
 
     void List();			// List all the files in the file system
 
     void Print();			// List all the files and their contents
 
-    void ChangeDirectory(const char* name); //move to another directory one level below or above
+    void ChangeDirectory(const char* name); // Move to another directory one level below or above
+
+    void ChangeDirectoryPath(const char* path); // Move from a path to another directory
 
   private:
     OpenFile* freeMapFile;		// Bit map of free disk blocks,
@@ -96,6 +102,8 @@ class FileSystem {
 					// file names, represented as a file
     OpenFile* currentDirectoryFile;		// "Current" directory -- list of
            // file names, represented as a file
+
+    OpenFile* OpenFromDirectory(const char *name, Directory *directory); //Open a file from a directory
 };
 
 #endif // FILESYS

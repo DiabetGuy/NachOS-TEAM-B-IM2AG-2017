@@ -233,3 +233,19 @@ Directory::Print()
     printf("\n");
     delete hdr;
 }
+
+
+//----------------------------------------------------------------------
+// Directory::isEmpty
+// 	If there any files or directory (not ""." or "..") inside then FALSE
+//----------------------------------------------------------------------
+
+void
+Directory::isEmpty()
+{
+    for (int i = 2; i < tableSize; i++) {
+      if (table[i].inUse) return FALSE;
+    }
+
+    return TRUE;
+}
