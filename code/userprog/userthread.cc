@@ -67,3 +67,18 @@ void do_UserThreadJoin(int id)
 {
   joint[id]->P();
 }
+
+int do_ForkExec(char *s)
+{
+    OpenFile *executable = fileSystem->Open(s);
+
+		Thread * threadlauncher = new Thread("ForkedProcess");
+    threadlauncher->space = new AddrSpace (executable);
+
+    thread_args *myfuncandarg = new thread_args(0, 0, 0);
+
+    delete executable;
+    threadlauncher->Fork (StartUserThread, (int) myfuncandarg);
+
+    return 0;
+}

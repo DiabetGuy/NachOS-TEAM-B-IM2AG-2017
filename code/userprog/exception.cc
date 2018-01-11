@@ -95,6 +95,24 @@ ExceptionHandler (ExceptionType which)
           interrupt->Halt();
           break;
         }
+        case SC_Exit: {
+          int returnParameter = machine->ReadRegister(4);
+          if(returnParameter == 0)
+          {
+            machine->processNb--;
+            if(machine->processNb == 0)
+            {
+                interrupt->Halt();
+            }
+            else
+            {
+                currentThread->Finish();
+            }
+          }
+          DEBUG('a', "Shutdown, initiated by user program.\n");
+
+          break;
+        }
         case SC_PutChar: {
           DEBUG ('p', "PutChar.\n");
           synchconsole->SynchPutChar((char) machine->ReadRegister(4));
@@ -148,10 +166,18 @@ ExceptionHandler (ExceptionType which)
           do_UserThreadJoin(machine->ReadRegister(4));
           break;
         }
+        case SC_ForkExec: {
+          DEBUG ('p', "ForkExec.\n");
+          int arg = machine->ReadRegister(4);
+          char strarg[MAX_STRING_SIZE];
+          copyStringFromMachine(arg, strarg, MAX_STRING_SIZE);
+          do_ForkExec(strarg);
+          machine->processNb++;
+          break;
+        }
         default: {
-          interrupt->Halt();
-          //printf("Unexpected user mode exception %d %d %d\n", which, type, machine->ReadRegister (2));
-          //ASSERT(FALSE);
+          printf("Unexpected user mode exception %d %d %d\n", which, type, machine->ReadRegister (2));
+          ASSERT(FALSE);
         }
       }
     }

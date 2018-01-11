@@ -16,7 +16,7 @@
 #include "stats.h"
 #include "timer.h"
 
-#define MAX_STRING_SIZE 10
+#define MAX_STRING_SIZE 20
 #define MAX_NB_THREAD 100
 
 // Initialization and cleanup routines

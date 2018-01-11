@@ -1,6 +1,6 @@
 #include "syscall.h"
-#define THIS "111"
-#define THAT "222"
+#define THIS "aaa"
+#define THAT "bbb"
 
 const int N = 10; // Choose it large enough!
 void puts(char *s)

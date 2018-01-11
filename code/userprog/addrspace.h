@@ -40,6 +40,8 @@ class AddrSpace
     Semaphore * spaceSem;
     BitMap * bitMap;
     int stackBeginning; // where does the "stack area" starts
+
+    FrameProvider *fprovider;
   private:
       TranslationEntry * pageTable;	// Assume linear page table translation
     // for now!

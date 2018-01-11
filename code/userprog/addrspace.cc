@@ -115,12 +115,12 @@ AddrSpace::AddrSpace (OpenFile * executable)
     DEBUG ('a', "Initializing address space, num pages %d, size %d\n",
 	   numPages, size);
 // first, set up the translation
-    FrameProvider *fprovider = new FrameProvider(NumPhysPages, PageSize, machine->mainMemory);
+    fprovider = new FrameProvider(NumPhysPages, PageSize, machine->mainMemory);
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++)
       {
     	  pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-    	  pageTable[i].physicalPage = fprovider->GetEmptyFrameRandom();
+    	  pageTable[i].physicalPage = fprovider->GetEmptyFrame();
     	  pageTable[i].valid = TRUE;
     	  pageTable[i].use = FALSE;
     	  pageTable[i].dirty = FALSE;
@@ -158,6 +158,12 @@ AddrSpace::AddrSpace (OpenFile * executable)
 
 AddrSpace::~AddrSpace ()
 {
+
+  unsigned i;
+  for (i = 0; i < numPages; ++i)
+  {
+    fprovider->ReleaseFrame( pageTable[i].physicalPage );
+  }
   // LB: Missing [] for delete
   // delete pageTable;
   delete [] pageTable;
