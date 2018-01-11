@@ -20,6 +20,7 @@
 #include "addrspace.h"
 #include "noff.h"
 
+
 #include <strings.h>		/* for bzero */
 
 
@@ -114,12 +115,12 @@ AddrSpace::AddrSpace (OpenFile * executable)
     DEBUG ('a', "Initializing address space, num pages %d, size %d\n",
 	   numPages, size);
 // first, set up the translation
-    FrameProvider fp = new 
+    FrameProvider *fprovider = new FrameProvider(NumPhysPages, PageSize, machine->mainMemory);
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++)
       {
     	  pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-    	  pageTable[i].physicalPage = i+1;
+    	  pageTable[i].physicalPage = fprovider->GetEmptyFrameRandom();
     	  pageTable[i].valid = TRUE;
     	  pageTable[i].use = FALSE;
     	  pageTable[i].dirty = FALSE;

@@ -17,6 +17,7 @@
 #include "filesys.h"
 #include "bitmap.h"
 #include "synch.h"
+#include "frameprovider.h"
 
 #define UserStackSize		10240	// increase this as necessary!
 #define PROCESS_THREADS_NUMBER 10

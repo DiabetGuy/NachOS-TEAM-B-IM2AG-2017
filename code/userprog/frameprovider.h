@@ -9,17 +9,18 @@
 class FrameProvider
 {
   public:
-
+	FrameProvider(int numPhysPages, int pageSize, char* mainMemory);
+	~FrameProvider();
+	int GetEmptyFrame();
+	int GetEmptyFrameRandom();
+	void ReleaseFrame(int frameNb);
+	int NumAvailFrame();
   private:
     BitMap * framemap;
     int physicalPageSize;
     char *memory;
 };
 
-FrameProvider(int NumPhysPages, int PageSize, char* mainMemory);
-~FrameProvider();
-int GetEmptyFrame();
-void ReleaseFrame();
-int NumAvailFrame();
+
 
 #endif // FRAMEPROVIDER_H

@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <time.h>
 
-FrameProvider::FrameProvider(int NumPhysPages, int PageSize, char* mainMemory)
+FrameProvider::FrameProvider(int numPhysPages, int pageSize, char* mainMemory)
 {
-  framemap=new BitMap(NumPhysPages);
-  physicalPageSize=PageSize;
+  framemap=new BitMap(numPhysPages);
+  physicalPageSize=pageSize;
   memory=mainMemory;
 }
 
@@ -16,32 +16,33 @@ FrameProvider::~FrameProvider()
 
 int FrameProvider::GetEmptyFrame()
 {
-  int frameNb = framesMap->Find();
-  bzero(memory + frameNb * physPageSize, physPageSize);
+  int frameNb = framemap->Find();
+  bzero(memory + frameNb * physicalPageSize, physicalPageSize);
   return frameNb;
 }
 
 int FrameProvider::GetEmptyFrameRandom()
 {
-  int nbClear = NumClear ();
+  int nbClear = framemap->NumClear ();
   int i, j=0;
 	int frameNb = 0;
-  int nbFrames = framesMap->GetSize();
+  int nbFrames = framemap->GetSize();
 	srand(time(NULL)); // initialisation de rand
 	frameNb = rand()%(nbClear) +1;
   for(i=0; i<nbFrames || j == frameNb; i++){
-    if (!Test (i)) j++;
+    if (!framemap->Test (i)) j++;
   }
-  bzero(memory + frameNb * physPageSize, physPageSize);
-  return frameNb;
+  bzero(memory + i * physicalPageSize, physicalPageSize);
+  framemap->Mark(i);
+  return i;
 }
 
-void FrameProvider::ReleaseFrame()
+void FrameProvider::ReleaseFrame(int frameNb)
 {
-  framesMap->Clear(frameNb);
+  framemap->Clear(frameNb);
 }
 
 int FrameProvider::NumAvailFrame()
 {
-    return framesMap->NumClear();
+    return framemap->NumClear();
 }
