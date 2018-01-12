@@ -50,6 +50,7 @@
 #include "directory.h"
 #include "filehdr.h"
 #include "filesys.h"
+#include "path.h"
 
 // Sectors containing the file headers for the bitmap of free sectors,
 // and the directory of files.  These file headers are placed in well-known
@@ -282,80 +283,21 @@ FileSystem::CreateDirectory(const char *name)
 
 //----------------------------------------------------------------------
 // FileSystem::Open
-// 	Open a file for reading and writing.
-//	To open a file:
-//	  Find the location of the file's header, using the directory
-//	  Bring the header into memory
-//
-//	"name" -- the text name of the file to be opened
-//----------------------------------------------------------------------
-
-OpenFile *
-FileSystem::Open(const char *name)
-{
-    Directory *directory = new Directory(NumDirEntries);
-
-    DEBUG('f', "Opening file %s\n", name);
-    directory->FetchFrom(currentDirectoryFile);
-    OpenFile* openFile = OpenFromDirectory(name, directory);
-
-    delete directory;
-
-    return openFile;	// return NULL if not found
-}
-
-//----------------------------------------------------------------------
-// FileSystem::OpenPath
 // 	Open a file from a path for reading and writing.
 //	To open a file:
 //	  Find the location of the file's header, using the directory
 //	  Bring the header into memory
 //
 //	"path" -- the path of the file to be opened
+//  "currentDirectoryFile" -- in which directory the file sytem is currently in
+//  "rootDirectoryFile" -- the root directory of the file sytem
 //----------------------------------------------------------------------
 
 OpenFile *
-FileSystem::OpenPath(const char *path) //TODO : replace Open by OpenPath //maybe parse path first then iterate through a list of files name
+FileSystem::Open(const char *path)
 {
-  Directory *directory = new Directory(NumDirEntries);
-  OpenFile *openFile = NULL;
-  char name[FileNameMaxLen];
-  int i = 0, j = 0;
-
-  if (path[0] == '/') {
-    openFile = rootDirectoryFile; //from root directory
-    i++;
-  } else {
-    openFile = currentDirectoryFile; //from current directory
-  }
-  directory->FetchFrom(openFile);
-
-  for (i = 0; path[i] != '\0'; i++) {
-    name[j] = path[i];
-    j++;
-
-    switch (path[i+1]) {
-      case '/':
-        i++; //avoid to iterate for '/' and do nothing
-      case '\0':
-        name[j] = '\0'; j = 0;
-        openFile = OpenFromDirectory(name, directory);
-        if (openFile != NULL) {
-          if (openFile->IsDirectory()) {
-            directory->FetchFrom(openFile);
-          } else {
-            return openFile; //return a file
-          }
-        } else {
-          return NULL; //next directory was not found
-        }
-        break;
-    }
-  }
-
-  delete directory;
-
-  return openFile; //return the last directory
+    Path *pathHandler = new Path(path, currentDirectoryFile, rootDirectoryFile);
+    return pathHandler->Open();
 }
 
 //----------------------------------------------------------------------
@@ -524,28 +466,15 @@ FileSystem::Print()
 }
 
 void
-FileSystem::ChangeDirectory(const char* name) { //TODO : replace ChangeDirectory with ChangeDirectoryPath
-    Directory *directory = new Directory(NumDirEntries);
-    directory->FetchFrom(currentDirectoryFile);
-    DirectoryEntry nextDirectoryDirectoryEntry;
+FileSystem::ChangeDirectory(const char* path) {
+    Path *pathHandler = new Path(path, currentDirectoryFile, rootDirectoryFile);
+    OpenFile *openFile = pathHandler->Open();
 
-    if (nextDirectoryDirectoryEntry = directory->FindDirectoryEntry(name)) //if directory entry found
-        if (nextDirectoryDirectoryEntry.isDir) {
-          currentDirectoryFile = Open(name);
-        }
-
-    delete directory;
-}
-
-void
-FileSystem::ChangeDirectoryPath(const char* path) {
-    OpenFile *openFile;
-
-    if (openFile = OpenPath(path)) {
-        if (openFile->IsDirectory()) {
-            currentDirectoryFile = openFile;
-        }
+    if (openFile->IsDirectory()) {
+        currentDirectoryFile = openFile;
     }
+
+    delete openFile;
 }
 
 

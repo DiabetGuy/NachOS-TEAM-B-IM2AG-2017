@@ -105,7 +105,7 @@ Directory::FindIndex(const char *name)
 //	"name" -- the file name to look up
 //----------------------------------------------------------------------
 
-DirectoryEntry
+DirectoryEntry*
 Directory::FindDirectoryEntry(const char *name)
 {
     int i = FindIndex(name);
@@ -127,7 +127,7 @@ Directory::FindDirectoryEntry(const char *name)
 int
 Directory::Find(const char *name)
 {
-    return FindDirectoryEntry(name).sector;
+    return FindDirectoryEntry(name)->sector;
 }
 
 //----------------------------------------------------------------------
@@ -136,10 +136,10 @@ Directory::Find(const char *name)
 bool
 Directory::IsFileDirectory(const char *name)
 {
-    DirectoryEntry directoryEntry = FindDirectoryEntry(name);
+    DirectoryEntry *directoryEntry = FindDirectoryEntry(name);
 
     if (directoryEntry != -1)
-	     return directoryEntry.isDir;
+	     return directoryEntry->isDir;
     return -1;
 }
 

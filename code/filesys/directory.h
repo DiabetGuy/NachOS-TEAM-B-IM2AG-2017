@@ -58,7 +58,7 @@ class Directory {
     void FetchFrom(OpenFile *file);  	// Init directory contents from disk
     void WriteBack(OpenFile *file);	// Write modifications to
 					// directory contents back to disk
-    DirectoryEntry FindDirectoryEntry(const char *name); //Find the directory entry of the
+    DirectoryEntry* FindDirectoryEntry(const char *name); //Find the directory entry of the
           // FileHeader for file: "name"
     int Find(const char *name);		// Find the sector number of the
 					// FileHeader for file: "name"

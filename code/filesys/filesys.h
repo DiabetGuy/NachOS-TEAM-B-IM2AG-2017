@@ -80,9 +80,7 @@ class FileSystem {
     bool CreateDirectory(const char *name);
 					// Create a directory (UNIX creat)
 
-    OpenFile* Open(const char *name); 	// Open a file (UNIX open)
-
-    OpenFile* OpenPath(const char *path); 	// Open a file from a path
+    OpenFile* Open(const char *path); 	// Open a file from a path
 
     bool Remove(const char *name); 	// Delete a file (UNIX unlink)
 
@@ -92,9 +90,7 @@ class FileSystem {
 
     void Print();			// List all the files and their contents
 
-    void ChangeDirectory(const char* name); // Move to another directory one level below or above
-
-    void ChangeDirectoryPath(const char* path); // Move from a path to another directory
+    void ChangeDirectory(const char* path); // Move to the directory that corresponds to the path
 
   private:
     OpenFile* freeMapFile;		// Bit map of free disk blocks,
