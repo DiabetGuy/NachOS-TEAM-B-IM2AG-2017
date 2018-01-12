@@ -37,7 +37,7 @@ int FrameProvider::GetEmptyFrameRandom()
 
 void FrameProvider::ReleaseFrame(int frameNb)
 {
-  framemap->Clear(frameNb);
+    framemap->Clear(frameNb);
 }
 
 int FrameProvider::NumAvailFrame()

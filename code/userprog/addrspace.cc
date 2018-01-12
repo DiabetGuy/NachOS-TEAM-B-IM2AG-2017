@@ -41,10 +41,8 @@ SwapHeader (NoffHeader * noffH)
     noffH->initData.size = WordToHost (noffH->initData.size);
     noffH->initData.virtualAddr = WordToHost (noffH->initData.virtualAddr);
     noffH->initData.inFileAddr = WordToHost (noffH->initData.inFileAddr);
-    noffH->uninitData.size = WordToHost
-     (noffH->uninitData.size);
-    noffH->uninitData.virtualAddr =
-	WordToHost (noffH->uninitData.virtualAddr);
+    noffH->uninitData.size = WordToHost(noffH->uninitData.size);
+    noffH->uninitData.virtualAddr = WordToHost (noffH->uninitData.virtualAddr);
     noffH->uninitData.inFileAddr = WordToHost (noffH->uninitData.inFileAddr);
 }
 
@@ -59,18 +57,18 @@ static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, i
     char* buffer = new char[numBytes];
 
     executable->ReadAt(buffer, numBytes, position);
-    IntStatus oldLevel = interrupt->SetLevel (IntOff);
+    //IntStatus oldLevel = interrupt->SetLevel (IntOff);
     int i;
-    for (i = 0; i < numBytes; ++i)
+    for (i = 0; i < numBytes; i++)
     {
-        machine->WriteMem(virtualaddr, 1, buffer[i]);
-        virtualaddr += sizeof(char);
+        machine->WriteMem(virtualaddr+i, 1, buffer[i]);
+        //virtualaddr += sizeof(char);
     }
     delete[] buffer;
 
     machine->pageTable = oldPageTable;
     machine->pageTableSize = oldPageTableSize;
-    (void) interrupt->SetLevel (oldLevel);
+    //(void) interrupt->SetLevel (oldLevel);
 }
 
 
@@ -97,8 +95,8 @@ AddrSpace::AddrSpace (OpenFile * executable)
     executable->ReadAt ((char *) &noffH, sizeof (noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) &&
 
-	(WordToHost (noffH.noffMagic) == NOFFMAGIC))
-	SwapHeader (&noffH);
+	  (WordToHost (noffH.noffMagic) == NOFFMAGIC))
+	  SwapHeader (&noffH);
     ASSERT (noffH.noffMagic == NOFFMAGIC);
 
 // how big is address space?
@@ -117,38 +115,43 @@ AddrSpace::AddrSpace (OpenFile * executable)
 // first, set up the translation
     fprovider = new FrameProvider(NumPhysPages, PageSize, machine->mainMemory);
     pageTable = new TranslationEntry[numPages];
+
+
     for (i = 0; i < numPages; i++)
-      {
-    	  pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-    	  pageTable[i].physicalPage = fprovider->GetEmptyFrame();
-    	  pageTable[i].valid = TRUE;
-    	  pageTable[i].use = FALSE;
-    	  pageTable[i].dirty = FALSE;
-    	  pageTable[i].readOnly = FALSE;	// if the code segment was entirely on
-    	  // a separate page, we could set its
-    	  // pages to be read-only
-      }
+    {
+  	  pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+  	  pageTable[i].physicalPage = fprovider->GetEmptyFrame();
+  	  pageTable[i].valid = TRUE;
+  	  pageTable[i].use = FALSE;
+  	  pageTable[i].dirty = FALSE;
+  	  pageTable[i].readOnly = FALSE;	// if the code segment was entirely on
+  	  // a separate page, we could set its
+  	  // pages to be read-only
+    }
+
 
 // zero out the entire address space, to zero the unitialized data segment
 // and the stack segment
-    bzero (machine->mainMemory, size);
+    //bzero (machine->mainMemory, size);
 
 // then, copy in the code and data segments into memory
     if (noffH.code.size > 0)
-      {
-	  DEBUG ('a', "Initializing code segment, at 0x%x, size %d\n", noffH.code.virtualAddr, noffH.code.size);
-    ReadAtVirtual(executable,noffH.code.virtualAddr, noffH.code.size, noffH.code.inFileAddr, pageTable, numPages);
-      }
+    {
+	     DEBUG ('a', "Initializing code segment, at 0x%x, size %d\n", noffH.code.virtualAddr, noffH.code.size);
+       ReadAtVirtual(executable,noffH.code.virtualAddr, noffH.code.size, noffH.code.inFileAddr, pageTable, numPages);
+    }
     if (noffH.initData.size > 0)
-      {
-	  DEBUG ('a', "Initializing data segment, at 0x%x, size %d\n", noffH.initData.virtualAddr, noffH.initData.size);
-    ReadAtVirtual(executable,noffH.initData.virtualAddr, noffH.initData.size, noffH.initData.inFileAddr, pageTable, numPages);
-      }
-
+    {
+	     DEBUG ('a', "Initializing data segment, at 0x%x, size %d\n", noffH.initData.virtualAddr, noffH.initData.size);
+       ReadAtVirtual(executable,noffH.initData.virtualAddr, noffH.initData.size, noffH.initData.inFileAddr, pageTable, numPages);
+    }
     spaceSem = new Semaphore("Space", 1);
     bitMap = new BitMap(PROCESS_THREADS_NUMBER);
     bitMap->Mark(0);
     stackBeginning = numPages * PageSize - 16;
+    machine->lock->P();
+    machine->processNb++;
+    machine->lock->V();
 }
 
 //----------------------------------------------------------------------
@@ -160,9 +163,9 @@ AddrSpace::~AddrSpace ()
 {
 
   unsigned i;
-  for (i = 0; i < numPages; ++i)
+  for (i = 0; i < numPages; i++)
   {
-    fprovider->ReleaseFrame( pageTable[i].physicalPage );
+    fprovider->ReleaseFrame(pageTable[i].physicalPage);
   }
   // LB: Missing [] for delete
   // delete pageTable;
@@ -188,8 +191,9 @@ AddrSpace::InitRegisters ()
     int i;
 
     for (i = 0; i < NumTotalRegs; i++)
-	machine->WriteRegister (i, 0);
-
+    {
+       machine->WriteRegister (i, 0);
+    }
     // Initial program counter -- must be location of "Start"
     machine->WriteRegister (PCReg, 0);
 

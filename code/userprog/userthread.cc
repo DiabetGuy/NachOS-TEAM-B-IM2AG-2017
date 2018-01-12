@@ -33,6 +33,15 @@ static void StartUserThread(int f)
   machine->Run();
 }
 
+static void StartProcess(int arg)
+{
+  currentThread->space = (AddrSpace*) arg;
+	currentThread->space->InitRegisters();
+  currentThread->space->RestoreState();
+
+  machine->Run();
+}
+
 int do_UserThreadCreate(int f, int arg)
 {
     int stackNum;
@@ -73,12 +82,14 @@ int do_ForkExec(char *s)
     OpenFile *executable = fileSystem->Open(s);
 
 		Thread * threadlauncher = new Thread("ForkedProcess");
-    threadlauncher->space = new AddrSpace (executable);
+    //threadlauncher->space = new AddrSpace (executable);
 
-    thread_args *myfuncandarg = new thread_args(0, 0, 0);
+    //thread_args *f1 = new thread_args(0, 0, 0);
+
+    AddrSpace *space = new AddrSpace(executable);
 
     delete executable;
-    threadlauncher->Fork (StartUserThread, (int) myfuncandarg);
-
+    threadlauncher->Fork (StartProcess, (int) space);
+    // currentThread->Yield();
     return 0;
 }

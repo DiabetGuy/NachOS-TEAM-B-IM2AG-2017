@@ -54,6 +54,7 @@ class SynchConsole {
 		int SynchGetInt();
 		void UserThreadExit();
 		int UserThreadCreate(void f(void * arg), void * arg);
+		//void CopyStringFromMachine(int from, char *to, unsigned size);
 	private:
 		Console *console;
 };

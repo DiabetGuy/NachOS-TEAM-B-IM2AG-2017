@@ -99,9 +99,12 @@ ExceptionHandler (ExceptionType which)
           int returnParameter = machine->ReadRegister(4);
           if(returnParameter == 0)
           {
+            machine->lock->P();
             machine->processNb--;
+            machine->lock->V();
             if(machine->processNb == 0)
             {
+
                 interrupt->Halt();
             }
             else
@@ -172,7 +175,6 @@ ExceptionHandler (ExceptionType which)
           char strarg[MAX_STRING_SIZE];
           copyStringFromMachine(arg, strarg, MAX_STRING_SIZE);
           do_ForkExec(strarg);
-          machine->processNb++;
           break;
         }
         default: {

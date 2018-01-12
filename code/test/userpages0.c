@@ -2,7 +2,7 @@
 #define THIS "111"
 #define THAT "222"
 
-const int N = 10; // Choose it large enough!
+const int N = 2; // Choose it large enough!
 void puts(char *s)
 {
   char *p; for (p = s; *p != '\0'; p++) PutChar(*p);
@@ -18,7 +18,7 @@ void f(void *s)
 
 int main()
 {
-  UserThreadCreate(f, (void *) THIS);
+  //UserThreadCreate(f, (void *) THIS);
   f((void*) THAT);
 
   Exit(0);

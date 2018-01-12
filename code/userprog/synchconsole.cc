@@ -119,3 +119,15 @@ void SynchConsole::UserThreadExit()
 	currentThread->Finish();
 	exited->V();
 }
+/*Rajouter pour tester une deuxieme possibilité , penser à l'enlever en cas de besoin*/
+// void SynchConsole::CopyStringFromMachine(int from, char *to, unsigned size)
+// {
+// 	unsigned i = 0;
+// 	int res;
+//
+// 	while((i<size)&&(machine->ReadMem(from+i,1,&res))){
+// 		*(to+i)= (char)res;
+// 		i++;
+// 	}
+// 	*(to+i)='\0';
+// }

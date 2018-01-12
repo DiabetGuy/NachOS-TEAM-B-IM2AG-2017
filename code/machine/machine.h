@@ -25,7 +25,7 @@
 #include "utility.h"
 #include "translate.h"
 #include "disk.h"
-
+#include "synch.h"
 // Definitions related to the size, and format of user memory
 
 #define PageSize 	SectorSize 	// set the page size equal to
@@ -182,6 +182,7 @@ class Machine {
     TranslationEntry *pageTable;
     unsigned int pageTableSize;
 		unsigned processNb;
+		Semaphore *lock;
 
   private:
     bool singleStep;		// drop back into the debugger after each
