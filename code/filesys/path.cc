@@ -72,7 +72,7 @@ Path::Open()
     for (PathElement *current = head; current != NULL; current = current->next) {
         //if directory entry found
         if (currentDirectoryEntry = directory->FindDirectoryEntry(current->name)) {
-            openFile = new OpenFile(sector);
+            openFile = new OpenFile(currentDirectoryEntry->sector);
             if (currentDirectoryEntry->isDir) {
                 directory->FetchFrom(openFile);
             } else { //current is the file and should be the last PathElement
