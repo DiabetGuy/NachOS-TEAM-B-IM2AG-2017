@@ -231,8 +231,8 @@ FileSystem::CreateDirectory(const char *name)
 {
   Directory *currentDirectory, *newDirectory;
   BitMap *freeMap;
-  FileHeader *hdr;
-  int sector;
+  FileHeader *dirHdr;
+  int dirSector;
   bool success;
 
   DEBUG('f', "Creating file %s, size %d\n", name, DirectoryFileSize);
@@ -261,13 +261,14 @@ FileSystem::CreateDirectory(const char *name)
         // everthing worked, flush all changes back to disk
         dirHdr->WriteBack(dirSector);
 
-        newDirectoryFile = new OpenFile(dirSector);
+        OpenFile *newDirectoryFile = new OpenFile(dirSector);
         newDirectory->Add(".", dirSector);
         newDirectory->Add("..", currentDirectoryFile->GetSector());
         newDirectory->WriteBack(newDirectoryFile);
 
         currentDirectory->WriteBack(currentDirectoryFile);
         freeMap->WriteBack(freeMapFile);
+        delete newDirectoryFile;
       }
         delete dirHdr;
         delete newDirectory;
@@ -329,7 +330,7 @@ FileSystem::OpenPath(const char *path) //TODO : replace Open by OpenPath //maybe
   }
   directory->FetchFrom(openFile);
 
-  for (i; path[i] != '\0', i++) {
+  for (i = 0; path[i] != '\0'; i++) {
     name[j] = path[i];
     j++;
 
@@ -338,8 +339,9 @@ FileSystem::OpenPath(const char *path) //TODO : replace Open by OpenPath //maybe
         i++; //avoid to iterate for '/' and do nothing
       case '\0':
         name[j] = '\0'; j = 0;
-        if (openFile = OpenFromDirectory(name, directory)) {
-          if (directory.isFileDirectory(name)) {
+        openFile = OpenFromDirectory(name, directory);
+        if (openFile != NULL) {
+          if (directory->isFileDirectory(name)) {
             directory->FetchFrom(openFile);
           } else {
             return openFile; //return a file
@@ -440,7 +442,7 @@ FileSystem::RemoveDirectory(const char *name)
     OpenFile *toRemoveDirectoryFile = new OpenFile(sector);
     toRemoveDirectory->FetchFrom(toRemoveDirectoryFile);
 
-    if (!toRemoveDirectory->isEmpty() || sector == rootDirectoryFile.GetSector()) {
+    if (!toRemoveDirectory->isEmpty() || sector == rootDirectoryFile->GetSector()) {
       delete currentDirectory;
       delete toRemoveDirectory;
       return FALSE;         //directory is not empty or directory is the root directory
@@ -455,7 +457,7 @@ FileSystem::RemoveDirectory(const char *name)
 
     fileHdr->Deallocate(freeMap);  		// remove data blocks
     freeMap->Clear(sector);			// remove header block
-    directory->Remove(name);
+    toRemoveDirectory->Remove(name);
 
     freeMap->WriteBack(freeMapFile);		// flush to disk
     currentDirectory->WriteBack(currentDirectoryFile);        // flush to disk

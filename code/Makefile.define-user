@@ -90,6 +90,9 @@ $(eval $(call define-flavor,step3,userprog filesys-stub,synchconsole.cc userthre
 USER_FLAVORS=step4
 $(eval $(call define-flavor,step4,userprog filesys-stub,synchconsole.cc userthread.cc frameprovider.cc))
 
+USER_FLAVORS=step5
+$(eval $(call define-flavor,step5,userprog filesys,synchconsole.cc userthread.cc frameprovider.cc))
+
 # $(eval $(call define-flavor,step5,userprog filesys,\
 #     synchconsole.cc userthread.cc))
 # $(eval $(call define-flavor,mynetwork,userprog filesys-stub network, \

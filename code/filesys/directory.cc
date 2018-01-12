@@ -117,7 +117,9 @@ Directory::Find(const char *name)
 
 //----------------------------------------------------------------------
 // Directory::isFileDirectory
-bool isFileDirectory(const char *name)
+//----------------------------------------------------------------------
+bool
+Directory::isFileDirectory(const char *name)
 {
     int i = FindIndex(name);
 
@@ -240,7 +242,7 @@ Directory::Print()
 // 	If there any files or directory (not ""." or "..") inside then FALSE
 //----------------------------------------------------------------------
 
-void
+bool
 Directory::isEmpty()
 {
     for (int i = 2; i < tableSize; i++) {
