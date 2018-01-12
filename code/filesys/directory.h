@@ -58,10 +58,11 @@ class Directory {
     void FetchFrom(OpenFile *file);  	// Init directory contents from disk
     void WriteBack(OpenFile *file);	// Write modifications to
 					// directory contents back to disk
-
+    DirectoryEntry FindDirectoryEntry(const char *name); //Find the directory entry of the
+          // FileHeader for file: "name"
     int Find(const char *name);		// Find the sector number of the
 					// FileHeader for file: "name"
-    bool isFileDirectory(const char *name);		// is the file for "name" a directory?
+    bool IsFileDirectory(const char *name);		// is the file for "name" a directory?
 
     bool Add(const char *name, int newSector);  // Add a file name into the directory
 
@@ -75,7 +76,7 @@ class Directory {
 					//  of the directory -- all the file
 					//  names and their contents.
 
-    bool isEmpty(); //if there any files or directory (not ""." or "..") inside then FALSE
+    bool IsEmpty(); //if there any files or directory (not ""." or "..") inside then FALSE
 
 
   private:

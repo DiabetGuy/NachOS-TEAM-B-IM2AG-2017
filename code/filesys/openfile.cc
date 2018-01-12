@@ -207,3 +207,15 @@ OpenFile::GetSector()
 {
   return ownSector;
 }
+
+
+//----------------------------------------------------------------------
+// OpenFile::IsDirectory
+// 	Call IsDirectory on FileHeader hdr
+//----------------------------------------------------------------------
+
+bool
+OpenFile::IsDirectory()
+{
+  return hdr->IsDirectory();
+}

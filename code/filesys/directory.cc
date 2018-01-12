@@ -97,6 +97,25 @@ Directory::FindIndex(const char *name)
 }
 
 //----------------------------------------------------------------------
+// Directory::FindDirectoryEntry
+// 	Look up file name in directory, and return its corresponding
+//	directory entrie from the table of directory entries.
+//  Return -1 if the name isn't in the directory.
+//
+//	"name" -- the file name to look up
+//----------------------------------------------------------------------
+
+DirectoryEntry
+Directory::FindDirectoryEntry(const char *name)
+{
+    int i = FindIndex(name);
+
+    if (i != -1)
+       return table[i];
+    return -1;
+}
+
+//----------------------------------------------------------------------
 // Directory::Find
 // 	Look up file name in directory, and return the disk sector number
 //	where the file's header is stored. Return -1 if the name isn't
@@ -108,23 +127,19 @@ Directory::FindIndex(const char *name)
 int
 Directory::Find(const char *name)
 {
-    int i = FindIndex(name);
-
-    if (i != -1)
-	     return table[i].sector;
-    return -1;
+    return FindDirectoryEntry(name).sector;
 }
 
 //----------------------------------------------------------------------
-// Directory::isFileDirectory
+// Directory::IsFileDirectory
 //----------------------------------------------------------------------
 bool
-Directory::isFileDirectory(const char *name)
+Directory::IsFileDirectory(const char *name)
 {
-    int i = FindIndex(name);
+    DirectoryEntry directoryEntry = FindDirectoryEntry(name);
 
-    if (i != -1)
-	     return table[i].isDir;
+    if (directoryEntry != -1)
+	     return directoryEntry.isDir;
     return -1;
 }
 
@@ -238,12 +253,12 @@ Directory::Print()
 
 
 //----------------------------------------------------------------------
-// Directory::isEmpty
+// Directory::IsEmpty
 // 	If there any files or directory (not ""." or "..") inside then FALSE
 //----------------------------------------------------------------------
 
 bool
-Directory::isEmpty()
+Directory::IsEmpty()
 {
     for (int i = 2; i < tableSize; i++) {
       if (table[i].inUse) return FALSE;
