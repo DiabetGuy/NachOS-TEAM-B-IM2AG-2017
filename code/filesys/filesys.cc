@@ -49,21 +49,10 @@
 #include "bitmap.h"
 #include "directory.h"
 #include "filehdr.h"
+#include "directoryhdr.h"
 #include "filesys.h"
 #include "path.h"
 
-// Sectors containing the file headers for the bitmap of free sectors,
-// and the directory of files.  These file headers are placed in well-known
-// sectors, so that they can be located on boot-up.
-#define FreeMapSector 		0
-#define DirectorySector 	1
-
-// Initial file sizes for the bitmap and directory; until the file system
-// supports extensible files, the directory size sets the maximum number
-// of files that can be loaded onto the disk.
-#define FreeMapFileSize 	(NumSectors / BitsInByte)
-#define NumDirEntries 		10
-#define DirectoryFileSize 	(sizeof(DirectoryEntry) * NumDirEntries)
 
 //----------------------------------------------------------------------
 // FileSystem::FileSystem
@@ -85,7 +74,8 @@ FileSystem::FileSystem(bool format)
         BitMap *freeMap = new BitMap(NumSectors);
         Directory *directory = new Directory(NumDirEntries);
       	FileHeader *mapHdr = new FileHeader;
-      	FileHeader *dirHdr = new DirectoryHeader;
+      	DirectoryHeader *dirHdr = new DirectoryHeader;
+        //FileHeader *dirHdr = dirHdrTmp;
 
         DEBUG('f', "Formatting the file system.\n");
 
@@ -232,7 +222,7 @@ FileSystem::CreateDirectory(const char *name)
 {
   Directory *currentDirectory, *newDirectory;
   BitMap *freeMap;
-  FileHeader *dirHdr;
+  DirectoryHeader *dirHdr;
   int dirSector;
   bool success;
 
@@ -254,7 +244,7 @@ FileSystem::CreateDirectory(const char *name)
     else if (!currentDirectory->AddDirectory(name, dirSector))
       success = FALSE;	// no space in directory
     else {
-      dirHdr = new DirectoryHeader;
+      dirHdr = new DirectoryHeader();
       if (!dirHdr->Allocate(freeMap, DirectoryFileSize))
         success = FALSE;	// no space on disk for data
       else {
@@ -296,7 +286,8 @@ FileSystem::CreateDirectory(const char *name)
 OpenFile *
 FileSystem::Open(const char *path)
 {
-    Path *pathHandler = new Path(path, currentDirectoryFile, rootDirectoryFile);
+    Path *pathHandler = new Path;
+    pathHandler->Initialize(path, currentDirectoryFile, rootDirectoryFile);
     return pathHandler->Open();
 }
 
@@ -376,7 +367,6 @@ FileSystem::RemoveDirectory(const char *name)
     sector = currentDirectory->Find(name);
     if (sector == -1) {
        delete currentDirectory;
-       delete toRemoveDirectory;
        return FALSE;			 // file not found
     }
 
@@ -397,7 +387,7 @@ FileSystem::RemoveDirectory(const char *name)
     freeMap = new BitMap(NumSectors);
     freeMap->FetchFrom(freeMapFile);
 
-    fileHdr->Deallocate(freeMap);  		// remove data blocks
+    dirHdr->Deallocate(freeMap);  		// remove data blocks
     freeMap->Clear(sector);			// remove header block
     toRemoveDirectory->Remove(name);
 
@@ -467,7 +457,8 @@ FileSystem::Print()
 
 void
 FileSystem::ChangeDirectory(const char* path) {
-    Path *pathHandler = new Path(path, currentDirectoryFile, rootDirectoryFile);
+    Path *pathHandler = new Path;
+    pathHandler->Initialize(path, currentDirectoryFile, rootDirectoryFile);
     OpenFile *openFile = pathHandler->Open();
 
     if (openFile->IsDirectory()) {

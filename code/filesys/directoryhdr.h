@@ -10,8 +10,13 @@
 // DirectoryHeader is a FileHeader that is constructed as a directory
 
 class DirectoryHeader : public FileHeader {
+  public:
+    DirectoryHeader() { // constructor
+      isDir = TRUE;
+    };
+
   private:
-    bool isDir = TRUE;
+    bool isDir;
 };
 
 #endif // DIRECTORYHDR_H

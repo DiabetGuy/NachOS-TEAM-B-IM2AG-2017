@@ -10,10 +10,14 @@
 // The following class corresponds to a file or directory that the path need to access
 
 class PathElement {
-private:
+  public:
+    PathElement() { // constructor
+      nameSize = 0;
+    }
+
     char name[FileNameMaxLen + 1];	// Text name for file, with +1 for
 					// the trailing '\0'
-    int nameSize = 0;
+    int nameSize;
     PathElement *next; //next file in the path
 };
 
@@ -22,11 +26,11 @@ private:
 
 class Path {
   public:
-    Path(const char *path, Directory *); // Parse a Path into a list of PathElement
-
     ~Path(); //Delete path
 
-    OpenFile Open(); // Open the file that corresponds to the path
+    bool Initialize(const char *path, OpenFile *currentDirectoryFile, OpenFile *rootDirectoryFile); // Parse a Path into a list of PathElement
+    
+    OpenFile* Open(); // Open the file that corresponds to the path
 
   private:
     OpenFile *initialDirectoryFile;
@@ -34,7 +38,7 @@ class Path {
     PathElement *tail;
 
     // Set the initial directory from which the path starts
-    SetInitialDirectory(const char *name, OpenFile *currentDirectoryFile, OpenFile *rootDirectoryFile);
+    void SetInitialDirectory(const char *path, OpenFile *currentDirectoryFile, OpenFile *rootDirectoryFile);
 };
 
 #endif // PATH_H

@@ -100,7 +100,7 @@ Directory::FindIndex(const char *name)
 // Directory::FindDirectoryEntry
 // 	Look up file name in directory, and return its corresponding
 //	directory entrie from the table of directory entries.
-//  Return -1 if the name isn't in the directory.
+//  Return NULL if the name isn't in the directory.
 //
 //	"name" -- the file name to look up
 //----------------------------------------------------------------------
@@ -111,8 +111,11 @@ Directory::FindDirectoryEntry(const char *name)
     int i = FindIndex(name);
 
     if (i != -1)
-       return table[i];
-    return -1;
+       return &table[i];
+
+    DirectoryEntry *directoryEntry = new DirectoryEntry;
+    directoryEntry->sector = -1;
+    return directoryEntry;
 }
 
 //----------------------------------------------------------------------
@@ -138,7 +141,7 @@ Directory::IsFileDirectory(const char *name)
 {
     DirectoryEntry *directoryEntry = FindDirectoryEntry(name);
 
-    if (directoryEntry != -1)
+    if (directoryEntry->sector != -1)
 	     return directoryEntry->isDir;
     return -1;
 }

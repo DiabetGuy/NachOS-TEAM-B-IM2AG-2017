@@ -2,8 +2,10 @@
 //	Path parser
 
 #include "copyright.h"
-#include "path.h"
 #include "openfile.h"
+#include "directory.h"
+#include "filesys.h"
+#include "path.h"
 
 
 //----------------------------------------------------------------------
@@ -15,7 +17,8 @@
 //  "rootDirectoryFile" -- the root directory of the file sytem
 //----------------------------------------------------------------------
 
-Path::Path(const char *path, OpenFile *currentDirectoryFile, OpenFile *rootDirectoryFile)
+bool
+Path::Initialize(const char *path, OpenFile *currentDirectoryFile, OpenFile *rootDirectoryFile)
 {
     SetInitialDirectory(path, currentDirectoryFile, rootDirectoryFile);
 
@@ -31,10 +34,12 @@ Path::Path(const char *path, OpenFile *currentDirectoryFile, OpenFile *rootDirec
             default:
                 tail->name[tail->nameSize] = path[i]; //add caracter by caracter
                 tail->nameSize++;
-                if (tail->nameSize > FileNameMaxLen) return NULL; //file name too long
+                if (tail->nameSize > FileNameMaxLen) return FALSE; //file name too long
         }
     }
     tail->name[tail->nameSize] = '\0';
+
+    return TRUE;
 }
 
 
@@ -61,7 +66,7 @@ Path::~Path()
 // Path::Open
 //  Open the file that corresponds to the path
 //----------------------------------------------------------------------
-
+OpenFile*
 Path::Open()
 {
     OpenFile *openFile = initialDirectoryFile;
@@ -71,7 +76,8 @@ Path::Open()
 
     for (PathElement *current = head; current != NULL; current = current->next) {
         //if directory entry found
-        if (currentDirectoryEntry = directory->FindDirectoryEntry(current->name)) {
+        currentDirectoryEntry = directory->FindDirectoryEntry(current->name);
+        if (currentDirectoryEntry->sector != -1) {
             openFile = new OpenFile(currentDirectoryEntry->sector);
             if (currentDirectoryEntry->isDir) {
                 directory->FetchFrom(openFile);

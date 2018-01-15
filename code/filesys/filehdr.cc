@@ -38,6 +38,10 @@
 //	"fileSize" is the bit map of free disk sectors
 //----------------------------------------------------------------------
 
+FileHeader::FileHeader() {
+  isDir = FALSE;
+}
+
 bool
 FileHeader::Allocate(BitMap *freeMap, int fileSize)
 {

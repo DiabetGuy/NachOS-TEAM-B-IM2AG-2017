@@ -39,6 +39,7 @@
 #include "openfile.h"
 #include "directory.h"
 
+
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as
 				// calls to UNIX, until the real file system
 				// implementation is available
@@ -66,6 +67,20 @@ class FileSystem {
 };
 
 #else // FILESYS
+
+// Sectors containing the file headers for the bitmap of free sectors,
+// and the directory of files.  These file headers are placed in well-known
+// sectors, so that they can be located on boot-up.
+#define FreeMapSector 		0
+#define DirectorySector 	1
+
+// Initial file sizes for the bitmap and directory; until the file system
+// supports extensible files, the directory size sets the maximum number
+// of files that can be loaded onto the disk.
+#define FreeMapFileSize 	(NumSectors / BitsInByte)
+#define NumDirEntries 		10
+#define DirectoryFileSize 	(sizeof(DirectoryEntry) * NumDirEntries)
+
 class FileSystem {
   public:
     FileSystem(bool format);		// Initialize the file system.
