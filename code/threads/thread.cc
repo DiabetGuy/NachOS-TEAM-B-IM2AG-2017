@@ -66,7 +66,7 @@ Thread::~Thread ()
     DEBUG ('t', "Deleting thread \"%s\"\n", name);
 
     ASSERT (this != currentThread);
-    delete this->space;
+    //delete this->space;
     if (stack != NULL)
 	DeallocBoundedArray ((char *) stack, StackSize * sizeof (int));
 }
@@ -107,7 +107,7 @@ Thread::Fork (VoidFunctionPtr func, int arg)
     // an already running program, as in the "fork" Unix system call.
 
     // LB: Observe that currentThread->space may be NULL at that time.
-    //this->space = currentThread->space;
+    this->space = currentThread->space;
 
 #endif // USER_PROGRAM
 

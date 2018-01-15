@@ -166,14 +166,14 @@ AddrSpace::~AddrSpace ()
   unsigned i;
   for (i = 0; i < numPages; i++)
   {
-    fprovider->ReleaseFrame(pageTable[i].physicalPage);
+    fprovider->ReleaseFrame(i);
   }
   // LB: Missing [] for delete
   // delete pageTable;
   delete [] pageTable;
   delete spaceSem;
   delete bitMap;
-  // End of modification
+  //End of modification
 }
 
 //----------------------------------------------------------------------
