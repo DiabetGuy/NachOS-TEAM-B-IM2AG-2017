@@ -93,6 +93,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
     unsigned int i, size;
 
     executable->ReadAt ((char *) &noffH, sizeof (noffH), 0);
+
     if ((noffH.noffMagic != NOFFMAGIC) &&
 
 	  (WordToHost (noffH.noffMagic) == NOFFMAGIC))
@@ -129,7 +130,6 @@ AddrSpace::AddrSpace (OpenFile * executable)
   	  // pages to be read-only
     }
 
-
 // zero out the entire address space, to zero the unitialized data segment
 // and the stack segment
     //bzero (machine->mainMemory, size);
@@ -148,6 +148,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
     spaceSem = new Semaphore("Space", 1);
     bitMap = new BitMap(PROCESS_THREADS_NUMBER);
     bitMap->Mark(0);
+    counter = 1;
     stackBeginning = numPages * PageSize - 16;
     machine->lock->P();
     machine->processNb++;
@@ -242,4 +243,12 @@ int
 AddrSpace::getSingleStackSize()
 {
   return UserStackSize/PROCESS_THREADS_NUMBER;
+}
+
+
+void
+AddrSpace::DecrementCounter () {
+    this->counter--;
+    if (this->counter == 1)
+        this->spaceSem->V();
 }

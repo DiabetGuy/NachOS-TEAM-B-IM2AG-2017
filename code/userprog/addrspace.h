@@ -39,11 +39,14 @@ class AddrSpace
     int getSingleStackSize();
     Semaphore * spaceSem;
     BitMap * bitMap;
+
     int stackBeginning; // where does the "stack area" starts
 
     FrameProvider *fprovider;
+    int counter;
+    void DecrementCounter();
   private:
-      TranslationEntry * pageTable;	// Assume linear page table translation
+    TranslationEntry * pageTable;	// Assume linear page table translation
     // for now!
     unsigned int numPages;	// Number of pages in the virtual
     // address space

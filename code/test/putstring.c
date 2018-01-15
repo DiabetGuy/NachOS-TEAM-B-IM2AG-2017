@@ -11,7 +11,7 @@ void print(char* str)
 int main()
 {
 	print("bonjour");
-	print("comment vas tu");
+	print("comment vas tu ????????????????");
 	print("comment ?");
 
 	//Halt();
