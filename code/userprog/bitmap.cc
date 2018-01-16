@@ -115,12 +115,12 @@ BitMap::Find ()
 int
 BitMap::NumClear ()
 {
-    int count = 0;
+  int count = 0;
 
-    for (int i = 0; i < numBits; i++)
+  for (int i = 0; i < numBits; i++)
 	if (!Test (i))
-	    count++;
-    return count;
+	   count++;
+  return count;
 }
 
 //----------------------------------------------------------------------

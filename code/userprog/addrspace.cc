@@ -101,12 +101,12 @@ AddrSpace::AddrSpace (OpenFile * executable)
     ASSERT (noffH.noffMagic == NOFFMAGIC);
 
 // how big is address space?
-    size = noffH.code.size + noffH.initData.size + noffH.uninitData.size + UserStackSize;	// we need to increase the size
+    size = noffH.code.size + noffH.initData.size + noffH.uninitData.size + UserStackSize ;	// we need to increase the size
     // to leave room for the stack
     numPages = divRoundUp (size, PageSize);
     size = numPages * PageSize;
 
-    ASSERT (numPages <= NumPhysPages);	// check we're not trying
+    ASSERT ((int) numPages <= fprovider->NumAvailFrame());	// check we're not trying
     // to run anything too big --
     // at least until we have
     // virtual memory
@@ -114,7 +114,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
     DEBUG ('a', "Initializing address space, num pages %d, size %d\n",
 	   numPages, size);
 // first, set up the translation
-    fprovider = new FrameProvider(NumPhysPages, PageSize, machine->mainMemory);
+
     pageTable = new TranslationEntry[numPages];
 
 

@@ -80,6 +80,12 @@ void do_UserThreadJoin(int id)
 int do_ForkExec(char *s)
 {
     OpenFile *executable = fileSystem->Open(s);
+    printf("ForkExec %s \n", s);
+
+    if (executable == NULL) {
+        printf("ForkExec %s failed...\n", s);
+        return -1;
+    }
 
 		Thread * threadlauncher = new Thread("ForkedProcess");
     //threadlauncher->space = new AddrSpace (executable);

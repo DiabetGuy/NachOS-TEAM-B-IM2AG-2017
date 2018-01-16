@@ -4,9 +4,9 @@
 
 FrameProvider::FrameProvider(int numPhysPages, int pageSize, char* mainMemory)
 {
-  framemap=new BitMap(numPhysPages);
-  physicalPageSize=pageSize;
-  memory=mainMemory;
+  framemap = new BitMap(numPhysPages);
+  physicalPageSize = pageSize;
+  memory = mainMemory;
 }
 
 FrameProvider::~FrameProvider()

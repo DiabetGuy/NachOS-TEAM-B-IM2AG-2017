@@ -15,16 +15,17 @@
 #include "interrupt.h"
 #include "stats.h"
 #include "timer.h"
+#include "frameprovider.h"
 
 #define MAX_STRING_SIZE 20
-#define MAX_NB_THREAD 100
+#define MAX_NB_THREAD 20
 
 // Initialization and cleanup routines
 extern void Initialize (int argc, char **argv);	// Initialization,
 						// called before anything else
 extern void Cleanup ();		// Cleanup, called when
 						// Nachos is done.
-
+extern FrameProvider *fprovider;
 extern Thread *currentThread;	// the thread holding the CPU
 extern Thread *threadToBeDestroyed;	// the thread that just finished
 extern Scheduler *scheduler;	// the ready list
@@ -39,6 +40,7 @@ extern int threadCounter;//define the thread's number such as a PID
 extern Machine *machine;	// user program memory and registers
 extern SynchConsole *synchconsole;
 extern Semaphore * joint[MAX_NB_THREAD];
+
 #endif
 
 #ifdef FILESYS_NEEDED		// FILESYS or FILESYS_STUB

@@ -32,6 +32,7 @@ SynchDisk *synchDisk;
 Machine *machine;		// user program memory and registers
 SynchConsole *synchconsole;
 Semaphore * joint[MAX_NB_THREAD];
+FrameProvider *fprovider;
 #endif
 
 #ifdef NETWORK
@@ -80,6 +81,7 @@ TimerInterruptHandler (int dummy)
 void
 Initialize (int argc, char **argv)
 {
+  fprovider = new FrameProvider(NumPhysPages, PageSize, machine->mainMemory);
     int argCount;
     const char *debugArgs = "";
     bool randomYield = FALSE;
@@ -160,7 +162,9 @@ Initialize (int argc, char **argv)
 
 #ifdef USER_PROGRAM
     machine = new Machine (debugUserProg);	// this must come first
+
     synchconsole = new SynchConsole(NULL, NULL);
+
     for(int i=0; i<MAX_NB_THREAD;i++){
       joint[i] = new Semaphore("Joint tab", 1);
     }
