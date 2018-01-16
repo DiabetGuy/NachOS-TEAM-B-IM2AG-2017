@@ -38,10 +38,6 @@
 //	"fileSize" is the bit map of free disk sectors
 //----------------------------------------------------------------------
 
-FileHeader::FileHeader() {
-  isDir = FALSE;
-}
-
 bool
 FileHeader::Allocate(BitMap *freeMap, int fileSize)
 {
@@ -151,15 +147,4 @@ FileHeader::Print()
         printf("\n");
     }
     delete [] data;
-}
-
-//----------------------------------------------------------------------
-// FileHeader::IsDirectory
-// 	isDir getter
-//----------------------------------------------------------------------
-
-bool
-FileHeader::IsDirectory()
-{
-  return isDir;
 }

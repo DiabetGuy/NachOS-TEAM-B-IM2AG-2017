@@ -89,10 +89,13 @@ class OpenFile {
 
     bool IsDirectory(); //call IsDirectory on FileHeader hdr
 
+    void SetAsDir(); //define this file as a directory
+
   private:
     FileHeader *hdr;			// Header for this file
     int seekPosition;			// Current position within the file
     int ownSector;        // Sector given at creation
+    bool isDir;
 };
 
 #endif // FILESYS

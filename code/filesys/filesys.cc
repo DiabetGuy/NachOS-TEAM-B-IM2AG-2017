@@ -49,7 +49,6 @@
 #include "bitmap.h"
 #include "directory.h"
 #include "filehdr.h"
-#include "directoryhdr.h"
 #include "filesys.h"
 #include "path.h"
 
@@ -74,7 +73,7 @@ FileSystem::FileSystem(bool format)
         BitMap *freeMap = new BitMap(NumSectors);
         Directory *directory = new Directory(NumDirEntries);
       	FileHeader *mapHdr = new FileHeader;
-      	DirectoryHeader *dirHdr = new DirectoryHeader;
+      	FileHeader *dirHdr = new FileHeader;
         //FileHeader *dirHdr = dirHdrTmp;
 
         DEBUG('f', "Formatting the file system.\n");
@@ -134,6 +133,7 @@ FileSystem::FileSystem(bool format)
     // the bitmap and directory; these are left open while Nachos is running
         freeMapFile = new OpenFile(FreeMapSector);
         rootDirectoryFile = new OpenFile(DirectorySector);
+        currentDirectoryFile = rootDirectoryFile;
     }
 }
 
@@ -146,7 +146,8 @@ FileSystem::FileSystem(bool format)
 //	The steps to create a file are:
 //	  Make sure the file doesn't already exist
 //        Allocate a sector for the file header
-// 	  Allocate space on disk for the data blocks for the file
+// 	  Allocate space on disk for the data blocks f
+//	"initialSize" -- size of file to be createdor the file
 //	  Add the name to the directory
 //	  Store the new file header on disk
 //	  Flush the changes to the bitmap and the directory back to disk
@@ -222,7 +223,7 @@ FileSystem::CreateDirectory(const char *name)
 {
   Directory *currentDirectory, *newDirectory;
   BitMap *freeMap;
-  DirectoryHeader *dirHdr;
+  FileHeader *dirHdr;
   int dirSector;
   bool success;
 
@@ -244,7 +245,7 @@ FileSystem::CreateDirectory(const char *name)
     else if (!currentDirectory->AddDirectory(name, dirSector))
       success = FALSE;	// no space in directory
     else {
-      dirHdr = new DirectoryHeader();
+      dirHdr = new FileHeader();
       if (!dirHdr->Allocate(freeMap, DirectoryFileSize))
         success = FALSE;	// no space on disk for data
       else {

@@ -32,6 +32,7 @@ OpenFile::OpenFile(int sector)
     hdr->FetchFrom(sector);
     seekPosition = 0;
     ownSector = sector;
+    isDir = FALSE;
 }
 
 //----------------------------------------------------------------------
@@ -217,5 +218,10 @@ OpenFile::GetSector()
 bool
 OpenFile::IsDirectory()
 {
-  return hdr->IsDirectory();
+  return isDir;
+}
+
+void
+OpenFile::SetAsDir() {
+  isDir = TRUE;
 }

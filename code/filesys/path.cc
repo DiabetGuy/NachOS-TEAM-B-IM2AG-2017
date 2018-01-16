@@ -80,6 +80,7 @@ Path::Open()
         if (currentDirectoryEntry->sector != -1) {
             openFile = new OpenFile(currentDirectoryEntry->sector);
             if (currentDirectoryEntry->isDir) {
+                openFile->SetAsDir();
                 directory->FetchFrom(openFile);
             } else { //current is the file and should be the last PathElement
                 if (current->next != NULL) { //current is not the last PathElement so Path is wrong
