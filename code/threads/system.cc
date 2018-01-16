@@ -81,7 +81,7 @@ TimerInterruptHandler (int dummy)
 void
 Initialize (int argc, char **argv)
 {
-  fprovider = new FrameProvider(NumPhysPages, PageSize, machine->mainMemory);
+
     int argCount;
     const char *debugArgs = "";
     bool randomYield = FALSE;
@@ -162,7 +162,7 @@ Initialize (int argc, char **argv)
 
 #ifdef USER_PROGRAM
     machine = new Machine (debugUserProg);	// this must come first
-
+    fprovider = new FrameProvider(NumPhysPages, PageSize, machine->mainMemory);
     synchconsole = new SynchConsole(NULL, NULL);
 
     for(int i=0; i<MAX_NB_THREAD;i++){

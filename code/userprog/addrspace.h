@@ -42,7 +42,7 @@ class AddrSpace
 
     int stackBeginning; // where does the "stack area" starts
 
-    FrameProvider *fprovider;
+
     int counter;
     void DecrementCounter();
   private:

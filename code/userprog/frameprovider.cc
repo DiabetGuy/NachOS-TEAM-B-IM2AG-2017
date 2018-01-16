@@ -18,7 +18,6 @@ int FrameProvider::GetEmptyFrame()
 {
   int frameNb = framemap->Find();
   bzero(memory + frameNb * physicalPageSize, physicalPageSize);
-
   return frameNb;
 }
 

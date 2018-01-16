@@ -57,7 +57,7 @@ static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, i
     char* buffer = new char[numBytes];
 
     executable->ReadAt(buffer, numBytes, position);
-    //IntStatus oldLevel = interrupt->SetLevel (IntOff);
+    IntStatus oldLevel = interrupt->SetLevel (IntOff);
     int i;
     for (i = 0; i < numBytes; i++)
     {
@@ -68,7 +68,7 @@ static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, i
 
     machine->pageTable = oldPageTable;
     machine->pageTableSize = oldPageTableSize;
-    //(void) interrupt->SetLevel (oldLevel);
+    (void) interrupt->SetLevel (oldLevel);
 }
 
 
@@ -106,7 +106,9 @@ AddrSpace::AddrSpace (OpenFile * executable)
     numPages = divRoundUp (size, PageSize);
     size = numPages * PageSize;
 
-    ASSERT ((int) numPages <= fprovider->NumAvailFrame());	// check we're not trying
+    ASSERT (numPages <= NumPhysPages);
+
+    ASSERT (fprovider->NumAvailFrame() >= 0);	// check we're not trying
     // to run anything too big --
     // at least until we have
     // virtual memory
