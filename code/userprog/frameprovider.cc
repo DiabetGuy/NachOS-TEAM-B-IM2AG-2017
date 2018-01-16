@@ -1,9 +1,11 @@
 #include "frameprovider.h"
+#include "system.h"
 #include <stdlib.h>
 #include <time.h>
 
 FrameProvider::FrameProvider(int numPhysPages, int pageSize, char* mainMemory)
 {
+
   framemap = new BitMap(numPhysPages);
   physicalPageSize = pageSize;
   memory = mainMemory;
@@ -16,8 +18,10 @@ FrameProvider::~FrameProvider()
 
 int FrameProvider::GetEmptyFrame()
 {
+  testSem->P();
   int frameNb = framemap->Find();
   bzero(memory + frameNb * physicalPageSize, physicalPageSize);
+  testSem->V();
   return frameNb;
 }
 

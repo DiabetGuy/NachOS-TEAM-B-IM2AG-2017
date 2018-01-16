@@ -40,6 +40,7 @@ static void StartProcess(int arg)
   currentThread->space->RestoreState();
 
   machine->Run();
+  ASSERT(FALSE); //ne passe jamais ici
 }
 
 int do_UserThreadCreate(int f, int arg)
@@ -96,6 +97,6 @@ int do_ForkExec(char *s)
 
     delete executable;
     threadlauncher->Fork (StartProcess, (int) space);
-    // currentThread->Yield();
+    //currentThread->Yield();
     return 0;
 }

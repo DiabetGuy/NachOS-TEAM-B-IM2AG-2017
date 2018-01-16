@@ -99,9 +99,9 @@ ExceptionHandler (ExceptionType which)
           int returnParameter = machine->ReadRegister(4);
           if(returnParameter == 0)
           {
-            machine->lock->P();
-            machine->processNb--;
-            machine->lock->V();
+            testSem->P();
+             machine->processNb--;
+
             if(machine->processNb == 0)
             {
 
@@ -111,6 +111,7 @@ ExceptionHandler (ExceptionType which)
             {
                 currentThread->Finish();
             }
+            testSem->V();
           }
           DEBUG('a', "Shutdown, initiated by user program.\n");
 

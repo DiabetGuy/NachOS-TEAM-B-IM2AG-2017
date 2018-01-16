@@ -2,9 +2,9 @@
 
 int main()
 {
-
-  ForkExec("../build/userpages1");
+  //PutChar('A');
   ForkExec("../build/userpages0");
+  ForkExec("../build/userpages1");
 
   Exit(0);
 

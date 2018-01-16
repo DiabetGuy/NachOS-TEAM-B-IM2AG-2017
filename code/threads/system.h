@@ -40,6 +40,7 @@ extern int threadCounter;//define the thread's number such as a PID
 extern Machine *machine;	// user program memory and registers
 extern SynchConsole *synchconsole;
 extern Semaphore * joint[MAX_NB_THREAD];
+extern Semaphore *testSem;
 
 #endif
 

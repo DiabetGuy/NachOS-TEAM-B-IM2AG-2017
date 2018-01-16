@@ -71,7 +71,7 @@ Machine::Machine(bool debug)
     pageTable = NULL;
 #endif
 		processNb = 0;
-		lock = new Semaphore("machineLock", 1);
+		lockM = new Semaphore("machineLock", 1);
     singleStep = debug;
     CheckEndian();
 }

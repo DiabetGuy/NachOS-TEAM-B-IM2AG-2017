@@ -113,13 +113,13 @@ int SynchConsole::SynchGetInt()
 	return n;
 }
 
+/*Raj
 void SynchConsole::UserThreadExit()
 {
 	exited->P();
 	currentThread->Finish();
 	exited->V();
-}
-/*Rajouter pour tester une deuxieme possibilité , penser à l'enlever en cas de besoin*/
+}outer pour tester une deuxieme possibilité , penser à l'enlever en cas de besoin*/
 // void SynchConsole::CopyStringFromMachine(int from, char *to, unsigned size)
 // {
 // 	unsigned i = 0;

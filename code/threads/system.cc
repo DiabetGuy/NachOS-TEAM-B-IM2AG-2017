@@ -33,6 +33,7 @@ Machine *machine;		// user program memory and registers
 SynchConsole *synchconsole;
 Semaphore * joint[MAX_NB_THREAD];
 FrameProvider *fprovider;
+Semaphore *testSem;
 #endif
 
 #ifdef NETWORK
@@ -164,7 +165,7 @@ Initialize (int argc, char **argv)
     machine = new Machine (debugUserProg);	// this must come first
     fprovider = new FrameProvider(NumPhysPages, PageSize, machine->mainMemory);
     synchconsole = new SynchConsole(NULL, NULL);
-
+    testSem = new Semaphore("Test", 1);
     for(int i=0; i<MAX_NB_THREAD;i++){
       joint[i] = new Semaphore("Joint tab", 1);
     }

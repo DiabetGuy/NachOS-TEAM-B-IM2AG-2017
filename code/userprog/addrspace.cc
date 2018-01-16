@@ -48,6 +48,9 @@ SwapHeader (NoffHeader * noffH)
 
 static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, int position, TranslationEntry *pageTable, unsigned numPages)
 {
+    IntStatus oldLevel = interrupt->SetLevel (IntOff);
+
+    ASSERT(pageTable!=NULL)
     TranslationEntry* oldPageTable = machine->pageTable;
     unsigned int oldPageTableSize  = machine->pageTableSize;
 
@@ -57,7 +60,7 @@ static void ReadAtVirtual(OpenFile *executable, int virtualaddr, int numBytes, i
     char* buffer = new char[numBytes];
 
     executable->ReadAt(buffer, numBytes, position);
-    IntStatus oldLevel = interrupt->SetLevel (IntOff);
+
     int i;
     for (i = 0; i < numBytes; i++)
     {
@@ -101,7 +104,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
     ASSERT (noffH.noffMagic == NOFFMAGIC);
 
 // how big is address space?
-    size = noffH.code.size + noffH.initData.size + noffH.uninitData.size + UserStackSize ;	// we need to increase the size
+    size = noffH.code.size + noffH.initData.size + noffH.uninitData.size + UserStackSize;	// we need to increase the size
     // to leave room for the stack
     numPages = divRoundUp (size, PageSize);
     size = numPages * PageSize;
@@ -150,11 +153,11 @@ AddrSpace::AddrSpace (OpenFile * executable)
     spaceSem = new Semaphore("Space", 1);
     bitMap = new BitMap(PROCESS_THREADS_NUMBER);
     bitMap->Mark(0);
-    counter = 1;
+    //counter = 1;
     stackBeginning = numPages * PageSize - 16;
-    machine->lock->P();
+    testSem->P();
     machine->processNb++;
-    machine->lock->V();
+    testSem->V();
 }
 
 //----------------------------------------------------------------------
