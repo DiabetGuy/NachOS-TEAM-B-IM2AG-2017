@@ -38,6 +38,7 @@ Path::Initialize(const char *path, OpenFile *currentDirectoryFile, OpenFile *roo
         }
     }
     tail->name[tail->nameSize] = '\0';
+    tail->next = NULL;
 
     return TRUE;
 }
@@ -84,21 +85,17 @@ Path::Open()
                 directory->FetchFrom(openFile);
             } else { //current is the file and should be the last PathElement
                 if (current->next != NULL) { //current is not the last PathElement so Path is wrong
-                    delete currentDirectoryEntry;
                     delete directory;
                     delete openFile;
                     return NULL;
                 }
             }
         } else { //if directory entry not found
-            delete currentDirectoryEntry;
             delete directory;
             delete openFile;
             return NULL;
         }
     }
-
-    delete currentDirectoryEntry;
     delete directory;
 
     return openFile;
