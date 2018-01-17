@@ -42,7 +42,7 @@ OpenFile::OpenFile(int sector)
 
 OpenFile::~OpenFile()
 {
-    delete hdr;
+    if (!fileSystem->IsOpenFileInCache(ownSector)) delete hdr;
 }
 
 //----------------------------------------------------------------------

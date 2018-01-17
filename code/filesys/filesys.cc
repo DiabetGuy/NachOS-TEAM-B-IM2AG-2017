@@ -135,6 +135,11 @@ FileSystem::FileSystem(bool format)
         rootDirectoryFile = new OpenFile(DirectorySector);
         currentDirectoryFile = rootDirectoryFile;
     }
+
+    indexCache = 0;
+    for(int i = 0; i < NumDirEntries; i++) {
+        openFileCache[i] = NULL;
+    }
 }
 
 //----------------------------------------------------------------------
@@ -322,6 +327,59 @@ FileSystem::ChangeDirectory(const char* path) {
     delete openFile;
 }
 
+//----------------------------------------------------------------------
+// FileSystem::CacheOpenFile
+// 	Cache an OpenFile
+//
+//	"openFile" -- OpenFile to store in the cache
+//----------------------------------------------------------------------
+
+void
+FileSystem::CacheOpenFile(OpenFile *openFile)
+{
+    openFileCache[indexCache] = openFile;
+    indexCache = (indexCache+1) % NumDirEntries;
+}
+
+//--------------------FileSystem::--------------------------------------------------
+// FileSystem::GetOpenFileFromCache
+// 	Return an OpenFile from the cache or NULL
+//
+//	"sector" -- the sector of the OpenFile to retrieve from the cache
+//----------------------------------------------------------------------
+
+OpenFile*
+FileSystem::GetOpenFileFromCache(int sector)
+{
+    for(int i = 0; i < NumDirEntries; i++) {
+        if (openFileCache[i]) {
+          if (openFileCache[i]->GetSector() == sector) {
+              return openFileCache[i];
+          }
+        }
+    }
+    return NULL;
+}
+
+//----------------------------------------------------------------------
+// FileSystem::IsOpenFileInCache
+//  Check if an OpenFile is in the cache
+//
+//	"sector" -- the sector of the OpenFile to retrieve from the cache
+//----------------------------------------------------------------------
+
+bool
+FileSystem::IsOpenFileInCache(int sector)
+{
+  for(int i = 0; i < NumDirEntries; i++) {
+      if (openFileCache[i]) {
+        if (openFileCache[i]->GetSector() == sector) {
+            return TRUE;
+        }
+      }
+  }
+  return FALSE;
+}
 
 
 //----------------------------------------------------------------------
@@ -342,8 +400,13 @@ FileSystem::OpenFromDirectory(const char *name, Directory *directory)
     DirectoryEntry *directoryEntry = directory->FindDirectoryEntry(name);
 
     if (directoryEntry->sector >= 0) { // name was found in directory
-	     openFile = new OpenFile(directoryEntry->sector);
-       if (directoryEntry->isDir) openFile->SetAsDir();
+        openFile = GetOpenFileFromCache(directoryEntry->sector);
+        
+        if (openFile == NULL) {
+         openFile = new OpenFile(directoryEntry->sector);
+        }
+        if (directoryEntry->isDir) openFile->SetAsDir();
+        CacheOpenFile(openFile);
     }
 
     return openFile;

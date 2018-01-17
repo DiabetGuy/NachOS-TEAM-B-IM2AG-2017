@@ -108,6 +108,11 @@ class FileSystem {
 
     void ChangeDirectory(const char* path); // Move to the directory that corresponds to the path
 
+    void CacheOpenFile(OpenFile *openFile); // Add an OpenFile to the cache
+
+    OpenFile* GetOpenFileFromCache(int sector); // Get an OpenFIle from the cache
+
+    bool IsOpenFileInCache(int sector);
 
 
     // Some helper functions
@@ -127,6 +132,9 @@ class FileSystem {
 					// file names, represented as a file
     OpenFile* currentDirectoryFile;		// "Current" directory -- list of
            // file names, represented as a file
+
+    OpenFile* openFileCache[NumDirEntries]; // Cache the last 10 OpenFile
+    int indexCache;
 };
 
 
