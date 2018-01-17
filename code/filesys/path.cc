@@ -38,6 +38,7 @@ Path::Initialize(const char *path, OpenFile *currentDirectoryFile, OpenFile *roo
         }
     }
     tail->name[tail->nameSize] = '\0';
+    tail->next = NULL;
 
     return TRUE;
 }
@@ -78,27 +79,24 @@ Path::Open()
         //if directory entry found
         currentDirectoryEntry = directory->FindDirectoryEntry(current->name);
         if (currentDirectoryEntry->sector != -1) {
-            openFile = new OpenFile(currentDirectoryEntry->sector);
+            delete openFile;
+            OpenFile *openFile = new OpenFile(currentDirectoryEntry->sector);
             if (currentDirectoryEntry->isDir) {
                 openFile->SetAsDir();
                 directory->FetchFrom(openFile);
             } else { //current is the file and should be the last PathElement
                 if (current->next != NULL) { //current is not the last PathElement so Path is wrong
-                    delete currentDirectoryEntry;
                     delete directory;
                     delete openFile;
                     return NULL;
                 }
             }
         } else { //if directory entry not found
-            delete currentDirectoryEntry;
             delete directory;
             delete openFile;
             return NULL;
         }
     }
-
-    delete currentDirectoryEntry;
     delete directory;
 
     return openFile;
@@ -123,4 +121,41 @@ Path::SetInitialDirectory(const char *path, OpenFile *currentDirectoryFile, Open
     } else {
         initialDirectoryFile = currentDirectoryFile; //from current directory
     }
+}
+
+
+//----------------------------------------------------------------------
+// Path::Iterate
+//  Open the file that corresponds to the path
+//----------------------------------------------------------------------
+PathElement*
+Path::Iterate(PathElement *current)
+{
+  DirectoryEntry *currentDirectoryEntry;
+  Directory *directory = new Directory(NumDirEntries);
+  directory->FetchFrom(current->openFile);
+
+  currentDirectoryEntry = directory->FindDirectoryEntry(current->name);
+      if (currentDirectoryEntry->sector != -1) {
+          delete openFile;
+          OpenFile *openFile = new OpenFile(currentDirectoryEntry->sector);
+          if (currentDirectoryEntry->isDir) {
+              openFile->SetAsDir();
+              directory->FetchFrom(openFile);
+          } else { //current is the file and should be the last PathElement
+              if (current->next != NULL) { //current is not the last PathElement so Path is wrong
+                  delete directory;
+                  delete openFile;
+                  return NULL;
+              }
+          }
+      } else { //if directory entry not found
+          delete directory;
+          delete openFile;
+          return NULL;
+      }
+  }
+  delete directory;
+
+  return openFile;
 }

@@ -110,7 +110,7 @@ $(eval $(call define-flavor,userprog,userprog filesys-stub))
 # $(eval $(call define-flavor,userprog,userprog filesys))
 
 ######### filesys
-$(eval $(call define-flavor,filesys,userprog filesys))
+$(eval $(call define-flavor,filesys,userprog filesys, synchconsole.cc userthread.cc frameprovider.cc))
 
 # bare bones version
 # $(eval $(call define-flavor,filesys,thread-test filesys))

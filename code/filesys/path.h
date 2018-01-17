@@ -19,6 +19,7 @@ class PathElement {
 					// the trailing '\0'
     int nameSize;
     PathElement *next; //next file in the path
+    OpenFile *openFile;
 };
 
 
@@ -29,7 +30,7 @@ class Path {
     ~Path(); //Delete path
 
     bool Initialize(const char *path, OpenFile *currentDirectoryFile, OpenFile *rootDirectoryFile); // Parse a Path into a list of PathElement
-    
+
     OpenFile* Open(); // Open the file that corresponds to the path
 
   private:

@@ -104,8 +104,8 @@ FileSystem::FileSystem(bool format)
 
         freeMapFile = new OpenFile(FreeMapSector);
         rootDirectoryFile = new OpenFile(DirectorySector);
-        directory->Add(".", DirectorySector);
-        directory->Add("..", DirectorySector);
+        directory->AddDirectory(".", DirectorySector);
+        directory->AddDirectory("..", DirectorySector);
         currentDirectoryFile = rootDirectoryFile; //At first the root directory is the current one
 
     // Once we have the files "open", we can write the initial version
@@ -254,8 +254,8 @@ FileSystem::CreateDirectory(const char *name)
         dirHdr->WriteBack(dirSector);
 
         OpenFile *newDirectoryFile = new OpenFile(dirSector);
-        newDirectory->Add(".", dirSector);
-        newDirectory->Add("..", currentDirectoryFile->GetSector());
+        newDirectory->AddDirectory(".", dirSector);
+        newDirectory->AddDirectory("..", currentDirectoryFile->GetSector());
         newDirectory->WriteBack(newDirectoryFile);
 
         currentDirectory->WriteBack(currentDirectoryFile);
