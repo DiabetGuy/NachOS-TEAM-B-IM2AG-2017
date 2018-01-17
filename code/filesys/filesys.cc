@@ -421,6 +421,7 @@ FileSystemUtils::OpenFromDirectory(const char *name, Directory *directory)
 //	"name" -- the text name of the file to be created
 //	"initialSize" -- size of file to be created; if > 0 then it is a file not a directory
 //  "directory" -- the directory from which the file should be open from
+//  "directoryOpenFile" -- the OpenFile that corresponds to directory
 //----------------------------------------------------------------------
 
 OpenFile*
@@ -481,10 +482,31 @@ FileSystemUtils::CreateFromDirectory(const char *name, int initialSize, Director
 //	"name" -- the text name of the file to be created
 //	"initialSize" -- size of file to be created; if > 0 then it is a file not a directory
 //  "directory" -- the directory from which the file should be open from
+//  "directoryOpenFile" -- the OpenFile that corresponds to directory
 //----------------------------------------------------------------------
 
 OpenFile*
-RemoveFromDirectory(OpenFile *openFile, Directory *directory)
+RemoveFromDirectory(OpenFile *openFile, Directory *directory, OpenFile *directoryOpenFile)
 {
-    //TODO
+    //TODO : mix RemoveDirectory and Remove than replace both by a new Remove function that will call Path->Remove
+}
+
+
+// FileSystemUtils::RemoveSafelyFromDirectory
+// 	Remove a file or directory that is right inside a given directory
+//
+//	"name" -- the text name of the file to be created
+//	"initialSize" -- size of file to be created; if > 0 then it is a file not a directory
+//  "directory" -- the directory from which the file should be open from
+//  "directoryOpenFile" -- the OpenFile that corresponds to directory
+//----------------------------------------------------------------------
+
+OpenFile*
+RemoveSafelyFromDirectory(OpenFile *openFile, Directory *directory, OpenFile *directoryOpenFile)
+{
+    if (openFile->isDirectory()) {
+        //TODO : verifications
+    } else {
+        return RemoveFromDirectory(openFile, directory, directoryOpenFile);
+    }
 }

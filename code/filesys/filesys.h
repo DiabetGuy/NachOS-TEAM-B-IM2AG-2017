@@ -126,7 +126,9 @@ class FileSystemUtils {
 
     OpenFile* CreateFromDirectory(const char *name, int initialSize, Directory *directory, OpenFile *directoryOpenFile); //Create a file or directory that is right inside a given directory
 
-    OpenFile* RemoveFromDirectory(OpenFile *openFile, Directory *directory); //Remove a file or directory that is right inside a given directory
+    OpenFile* RemoveFromDirectory(OpenFile *openFile, Directory *directory, OpenFile *directoryOpenFile); //Remove a file or directory that is right inside a given directory
+
+    OpenFile* RemoveSafelyFromDirectory(OpenFile *openFile, Directory *directory, OpenFile *directoryOpenFile); //Remove a file or directory that is right inside a given directory with verification to prevent blunt deletion of a directory
 };
 
 

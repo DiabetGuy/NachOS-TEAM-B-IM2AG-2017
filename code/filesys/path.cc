@@ -115,6 +115,17 @@ Path::Create(int size)
 
 
 //----------------------------------------------------------------------
+// Path::Remove
+//  Remove the file or directory that the path refers to
+//----------------------------------------------------------------------
+OpenFile*
+Path::Remove()
+{
+    return Resolve(&PathResolver::Remove);
+}
+
+
+//----------------------------------------------------------------------
 // Path::Resolve
 //  Process the list with the help of a specified resolver
 //
@@ -129,9 +140,7 @@ Path::Resolve(OpenFile* (PathResolver::*resolver)(PathElement *current, Director
     directory->FetchFrom(openFile);
 
     for (PathElement *current = head; current != NULL; current = current->next) {
-        //try to open the file else to resolve it
-        openFile = FileSystemUtils::OpenFromDirectory(current->name, directory)
-                   || (this->*resolver)(current, directory, openFile); //open failed so try to resolve
+        openFile = (this->*resolver)(current, directory, openFile);
 
         if (openFile) {
             if (openFile->IsDirectory()) {
@@ -170,7 +179,7 @@ Path::Resolve(OpenFile* (PathResolver::*resolver)(PathElement *current, Director
 OpenFile*
 PathResolver::Open(PathElement *current, Directory *directory, OpenFile *directoryOpenFile)
 {
-    return NULL;
+    return FileSystemUtils::OpenFromDirectory(current->name, directory);
 }
 
 
@@ -185,6 +194,9 @@ PathResolver::Open(PathElement *current, Directory *directory, OpenFile *directo
 OpenFile*
 PathResolver::CreateFile(PathElement *current, Directory *directory, OpenFile *directoryOpenFile)
 {
+    OpenFile *openFile = FileSystemUtils::OpenFromDirectory(current->name, directory);
+    if (openFile) return openFile;
+
     return FileSystemUtils::CreateFromDirectory(current->name, (current->next != NULL) ? -1 : initialSize, directory, directoryOpenFile);
 }
 
@@ -200,5 +212,28 @@ PathResolver::CreateFile(PathElement *current, Directory *directory, OpenFile *d
 OpenFile*
 PathResolver::CreateDirectory(PathElement *current, Directory *directory, OpenFile *directoryOpenFile, directoryOpenFile)
 {
+    OpenFile *openFile = FileSystemUtils::OpenFromDirectory(current->name, directory);
+    if (openFile) return openFile;
+
     return FileSystemUtils::CreateFromDirectory(current->name, -1, directory, directoryOpenFile);
+}
+
+//----------------------------------------------------------------------
+// PathResolver::Remove
+//  Remove a file or directory
+//
+//  "current" -- the current PathElement being processed by Resolve
+//  "directory" -- the current Directory, Resolve is in
+//  "directoryOpenFile" -- the OpenFile that corresponds to the directory
+//----------------------------------------------------------------------
+OpenFile*
+PathResolver::Remove(PathElement *current, Directory *directory, OpenFile *directoryOpenFile, directoryOpenFile)
+{
+    OpenFile *openFile = FileSystemUtils::OpenFromDirectory(current->name, directory);
+
+    if (current->next != NULL) {
+        return openFile;
+    } else {
+        return FileSystemUtils::RemoveSafelyFromDirectory(openFile, directory, directoryOpenFile);
+    }
 }

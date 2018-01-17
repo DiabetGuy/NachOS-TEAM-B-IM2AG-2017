@@ -41,6 +41,8 @@ class Path {
 
     OpenFile* Create(int size); // Create the file or directory that the path refers to
 
+    OpenFile* Remove(); // Remove the file or directory that the path refers to
+
   private:
     OpenFile *initialDirectoryFile;
     PathElement *head;
@@ -62,6 +64,8 @@ class PathResolver {
     OpenFile* CreateFile(PathElement *current, Directory *directory, OpenFile *directoryOpenFile);
 
     OpenFile* CreateDirectory(PathElement *current, Directory *directory, OpenFile *directoryOpenFile);
+
+    OpenFile* Remove(PathElement *current, Directory *directory, OpenFile *directoryOpenFile);
 };
 
 #endif // PATH_H
