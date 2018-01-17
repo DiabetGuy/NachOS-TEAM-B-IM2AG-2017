@@ -27,12 +27,14 @@
 //
 //  FILESYS
 //    -f causes the physical disk to be formatted
-//    -cp copies a file from UNIX to Nachos
+//    -cp copies a file from UNIX to Nachos (path allowed)
 //    -p prints a Nachos file to stdout
 //    -r removes a Nachos file from the file system
-//    -l lists the contents of the Nachos directory
+//    -l lists the contents of the Nachos root directory
+//    -lp lists the content of the Nachos given directory from a path
 //    -D prints the contents of the entire file system
 //    -t tests the performance of the Nachos file system
+//    -mkdir creates a directory in the file system
 //
 //  NETWORK
 //    -n sets the network reliability
@@ -131,12 +133,6 @@ main (int argc, char **argv)
 
 #endif // USER_PROGRAM
 #ifdef FILESYS
-    if (!strcmp (*argv, "-cd"))
-      {			// copy from UNIX to Nachos
-    ASSERT (argc > 1);
-    fileSystem->ChangeDirectory (*(argv + 1));
-    argCount = 3;
-      }
     if (!strcmp (*argv, "-mkdir"))
       {			// copy from UNIX to Nachos
     ASSERT (argc > 1);
@@ -165,6 +161,12 @@ main (int argc, char **argv)
 	    {			// list Nachos directory
 		fileSystem->List ();
 	    }
+    else if (!strcmp (*argv, "-lp"))
+      {			// list Nachos directory
+        ASSERT (argc > 1);
+    		fileSystem->ListPath (*(argv + 1));
+    		argCount = 2;
+      }
 	  else if (!strcmp (*argv, "-D"))
 	    {			// print entire filesystem
 		fileSystem->Print ();

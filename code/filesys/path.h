@@ -33,7 +33,7 @@ class Path {
     bool Initialize(const char *path, OpenFile *currentDirectoryFile, OpenFile *rootDirectoryFile);
 
     // Process the list with the help of a specified resolver
-    OpenFile* Resolve(void (PathResolver::*resolver)(PathElement *current, Directory *directory));
+    OpenFile* Resolve(char resolver);
     // Must be call like that : Resolve(&PathResolver::ResolverName);
     // Resolve calls resolver like this : (this->*resolver)(current, directory);
 
@@ -51,21 +51,19 @@ class Path {
 
     // Set the initial directory from which the path starts
     void SetInitialDirectory(const char *path, OpenFile *currentDirectoryFile, OpenFile *rootDirectoryFile);
+
+    OpenFile* CallResolver(char resolver, PathElement *current, Directory *directory, OpenFile *directoryOpenFile);
 };
 
 
-// A set of functions, resolvers, to be call by Path::Resolve if a file cannot be opened
-// Must be something like : OpenFile* ResolverName(PathElement *current, Directory *directory, OpenFile *directoryOpenFile);
+// A set of functions, resolvers, to be call by Path::Resolve to get the OpenFile that corresponds to the current PathElement
 
-class PathResolver {
-  private:
-    OpenFile* Open(PathElement *current, Directory *directory, OpenFile *directoryOpenFile);
+OpenFile* PathResolverOpen(PathElement *current, Directory *directory, OpenFile *directoryOpenFile);
 
-    OpenFile* CreateFile(PathElement *current, Directory *directory, OpenFile *directoryOpenFile);
+OpenFile* PathResolverCreateFile(PathElement *current, Directory *directory, OpenFile *directoryOpenFile, int initialSize);
 
-    OpenFile* CreateDirectory(PathElement *current, Directory *directory, OpenFile *directoryOpenFile);
+OpenFile* PathResolverCreateDirectory(PathElement *current, Directory *directory, OpenFile *directoryOpenFile);
 
-    OpenFile* Remove(PathElement *current, Directory *directory, OpenFile *directoryOpenFile);
-};
+OpenFile* PathResolverRemove(PathElement *current, Directory *directory, OpenFile *directoryOpenFile);
 
 #endif // PATH_H

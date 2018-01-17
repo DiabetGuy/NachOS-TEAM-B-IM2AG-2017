@@ -98,15 +98,27 @@ class FileSystem {
 
     OpenFile* Open(const char *path); 	// Open a file from a path
 
-    bool Remove(const char *name); 	// Delete a file (UNIX unlink)
+    bool Remove(const char *path); 	// Delete a file from a path
 
-    bool RemoveDirectory(const char *name); 	// Delete a directory
+    void List();			// List all the files in the current directory
 
-    void List();			// List all the files in the file system
+    void ListPath(const char* path); // List all files in a specified directory with a given path
 
     void Print();			// List all the files and their contents
 
     void ChangeDirectory(const char* path); // Move to the directory that corresponds to the path
+
+
+
+    // Some helper functions
+
+    OpenFile* OpenFromDirectory(const char *name, Directory *directory); //Open a file that is right inside a given directory
+
+    OpenFile* CreateFromDirectory(const char *name, int initialSize, Directory *directory, OpenFile *directoryOpenFile); //Create a file or directory that is right inside a given directory
+
+    OpenFile* RemoveFromDirectory(const char* name, OpenFile *openFile, Directory *directory, OpenFile *directoryOpenFile); //Remove a file or directory that is right inside a given directory
+
+    OpenFile* RemoveSafelyFromDirectory(const char* name, OpenFile *openFile, Directory *directory, OpenFile *directoryOpenFile); //Remove a file or directory that is right inside a given directory with verification to prevent blunt deletion of a directory
 
   private:
     OpenFile* freeMapFile;		// Bit map of free disk blocks,
@@ -115,20 +127,6 @@ class FileSystem {
 					// file names, represented as a file
     OpenFile* currentDirectoryFile;		// "Current" directory -- list of
            // file names, represented as a file
-};
-
-
-// Some helper functions
-
-class FileSystemUtils {
-  public:
-    OpenFile* OpenFromDirectory(const char *name, Directory *directory); //Open a file that is right inside a given directory
-
-    OpenFile* CreateFromDirectory(const char *name, int initialSize, Directory *directory, OpenFile *directoryOpenFile); //Create a file or directory that is right inside a given directory
-
-    OpenFile* RemoveFromDirectory(OpenFile *openFile, Directory *directory, OpenFile *directoryOpenFile); //Remove a file or directory that is right inside a given directory
-
-    OpenFile* RemoveSafelyFromDirectory(OpenFile *openFile, Directory *directory, OpenFile *directoryOpenFile); //Remove a file or directory that is right inside a given directory with verification to prevent blunt deletion of a directory
 };
 
 

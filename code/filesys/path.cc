@@ -6,6 +6,7 @@
 #include "directory.h"
 #include "filesys.h"
 #include "path.h"
+#include "system.h"
 
 
 //----------------------------------------------------------------------
@@ -83,6 +84,37 @@ Path::SetInitialDirectory(const char *path, OpenFile *currentDirectoryFile, Open
     }
 }
 
+//----------------------------------------------------------------------
+// Path::CallResolver
+// 	A switch to call our resolver
+//
+//  "resolver" -- the resolver code name
+//	"path" -- the path of the file to be opened
+//  "currentDirectoryFile" -- in which directory the file sytem is currently in
+//  "rootDirectoryFile" -- the root directory of the file sytem
+//----------------------------------------------------------------------
+
+OpenFile*
+Path::CallResolver(char resolver, PathElement *current, Directory *directory, OpenFile *directoryOpenFile)
+{
+  switch(resolver) {
+    case 'o':
+      return PathResolverOpen(current, directory, directoryOpenFile);
+      break;
+    case 'f':
+      return PathResolverCreateFile(current, directory, directoryOpenFile, initialSize);
+      break;
+    case 'd':
+      return PathResolverCreateDirectory(current, directory, directoryOpenFile);
+      break;
+    case 'r':
+      return PathResolverRemove(current, directory, directoryOpenFile);
+      break;
+    default:
+      return NULL;
+  }
+}
+
 
 //----------------------------------------------------------------------
 // Path::Open
@@ -91,7 +123,7 @@ Path::SetInitialDirectory(const char *path, OpenFile *currentDirectoryFile, Open
 OpenFile*
 Path::Open()
 {
-    return Resolve(&PathResolver::Open);
+    return Resolve('o');
 }
 
 
@@ -106,10 +138,10 @@ Path::Create(int size)
 {
     if (size > 0) {
         initialSize = size;
-        return Resolve(&PathResolver::CreateFile);
+        return Resolve('f');
     } else {
         initialSize = -1;
-        return Resolve(&PathResolver::CreateDirectory);
+        return Resolve('d');
     }
 }
 
@@ -121,7 +153,7 @@ Path::Create(int size)
 OpenFile*
 Path::Remove()
 {
-    return Resolve(&PathResolver::Remove);
+    return Resolve('r');
 }
 
 
@@ -132,35 +164,31 @@ Path::Remove()
 //  "resolver" -- a resolver to be called every time the file cannot be opened
 //----------------------------------------------------------------------
 OpenFile*
-Path::Resolve(OpenFile* (PathResolver::*resolver)(PathElement *current, Directory *directory, openFile *directoryOpenFile))
+Path::Resolve(char resolver)
 {
     OpenFile *openFile = initialDirectoryFile;
-    DirectoryEntry *currentDirectoryEntry;
     Directory *directory = new Directory(NumDirEntries);
     directory->FetchFrom(openFile);
 
     for (PathElement *current = head; current != NULL; current = current->next) {
-        openFile = (this->*resolver)(current, directory, openFile);
+        openFile = CallResolver(resolver, current, directory, openFile);
 
         if (openFile) {
             if (openFile->IsDirectory()) {
-                directory->FetchFrom();
+                directory->FetchFrom(openFile);
             } else {
                 if (current->next != NULL) { //current is not the last PathElement so Path is wrong
-                    delete current;
                     delete directory;
                     delete openFile;
                     return NULL;
                 } //else the for loop will end and return openFile
             }
         } else {
-            delete current;
             delete directory;
             delete openFile;
             return NULL;
         }
     }
-    delete current;
     delete directory;
 
     return openFile;
@@ -169,7 +197,7 @@ Path::Resolve(OpenFile* (PathResolver::*resolver)(PathElement *current, Director
 
 
 //----------------------------------------------------------------------
-// PathResolver::Open
+// PathResolverOpen
 //  Always return NULL as there is nothing to do if the file does not exist
 //
 //  "current" -- the current PathElement being processed by Resolve
@@ -177,14 +205,14 @@ Path::Resolve(OpenFile* (PathResolver::*resolver)(PathElement *current, Director
 //  "directoryOpenFile" -- the OpenFile that corresponds to the directory
 //----------------------------------------------------------------------
 OpenFile*
-PathResolver::Open(PathElement *current, Directory *directory, OpenFile *directoryOpenFile)
+PathResolverOpen(PathElement *current, Directory *directory, OpenFile *directoryOpenFile)
 {
-    return FileSystemUtils::OpenFromDirectory(current->name, directory);
+    return fileSystem->OpenFromDirectory(current->name, directory);
 }
 
 
 //----------------------------------------------------------------------
-// PathResolver::CreateFile
+// PathResolverCreateFile
 //  Create a directory if current is not last else a file
 //
 //  "current" -- the current PathElement being processed by Resolve
@@ -192,17 +220,17 @@ PathResolver::Open(PathElement *current, Directory *directory, OpenFile *directo
 //  "directoryOpenFile" -- the OpenFile that corresponds to the directory
 //----------------------------------------------------------------------
 OpenFile*
-PathResolver::CreateFile(PathElement *current, Directory *directory, OpenFile *directoryOpenFile)
+PathResolverCreateFile(PathElement *current, Directory *directory, OpenFile *directoryOpenFile, int initialSize)
 {
-    OpenFile *openFile = FileSystemUtils::OpenFromDirectory(current->name, directory);
+    OpenFile *openFile = fileSystem->OpenFromDirectory(current->name, directory);
     if (openFile) return openFile;
 
-    return FileSystemUtils::CreateFromDirectory(current->name, (current->next != NULL) ? -1 : initialSize, directory, directoryOpenFile);
+    return fileSystem->CreateFromDirectory(current->name, (current->next != NULL) ? -1 : initialSize, directory, directoryOpenFile);
 }
 
 
 //----------------------------------------------------------------------
-// PathResolver::CreateDirectory
+// PathResolverCreateDirectory
 //  Create a directory
 //
 //  "current" -- the current PathElement being processed by Resolve
@@ -210,16 +238,16 @@ PathResolver::CreateFile(PathElement *current, Directory *directory, OpenFile *d
 //  "directoryOpenFile" -- the OpenFile that corresponds to the directory
 //----------------------------------------------------------------------
 OpenFile*
-PathResolver::CreateDirectory(PathElement *current, Directory *directory, OpenFile *directoryOpenFile, directoryOpenFile)
+PathResolverCreateDirectory(PathElement *current, Directory *directory, OpenFile *directoryOpenFile)
 {
-    OpenFile *openFile = FileSystemUtils::OpenFromDirectory(current->name, directory);
+    OpenFile *openFile = fileSystem->OpenFromDirectory(current->name, directory);
     if (openFile) return openFile;
 
-    return FileSystemUtils::CreateFromDirectory(current->name, -1, directory, directoryOpenFile);
+    return fileSystem->CreateFromDirectory(current->name, -1, directory, directoryOpenFile);
 }
 
 //----------------------------------------------------------------------
-// PathResolver::Remove
+// PathResolverRemove
 //  Remove a file or directory
 //
 //  "current" -- the current PathElement being processed by Resolve
@@ -227,13 +255,13 @@ PathResolver::CreateDirectory(PathElement *current, Directory *directory, OpenFi
 //  "directoryOpenFile" -- the OpenFile that corresponds to the directory
 //----------------------------------------------------------------------
 OpenFile*
-PathResolver::Remove(PathElement *current, Directory *directory, OpenFile *directoryOpenFile, directoryOpenFile)
+PathResolverRemove(PathElement *current, Directory *directory, OpenFile *directoryOpenFile)
 {
-    OpenFile *openFile = FileSystemUtils::OpenFromDirectory(current->name, directory);
+    OpenFile *openFile = fileSystem->OpenFromDirectory(current->name, directory);
 
     if (current->next != NULL) {
         return openFile;
     } else {
-        return FileSystemUtils::RemoveSafelyFromDirectory(openFile, directory, directoryOpenFile);
+        return fileSystem->RemoveSafelyFromDirectory(current->name, openFile, directory, directoryOpenFile);
     }
 }

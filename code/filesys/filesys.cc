@@ -163,12 +163,12 @@ FileSystem::FileSystem(bool format)
 // 	Note that this implementation assumes there is no concurrent access
 //	to the file system!
 //
-//	"name" -- name of file to be created
+//	"path" -- the path of the file to be created
 //	"initialSize" -- size of file to be created
 //----------------------------------------------------------------------
 
 bool
-FileSystem::Create(const char *name, int initialSize)
+FileSystem::Create(const char *path, int initialSize)
 {
     Path *_path = new Path;
     _path->Initialize(path, currentDirectoryFile, rootDirectoryFile);
@@ -179,12 +179,12 @@ FileSystem::Create(const char *name, int initialSize)
 //----------------------------------------------------------------------
 // FileSystem::CreateDirectory
 // 	Create a directory in the Nachos file system
-
-//	"name" -- name of file to be created
+//
+//	"path" -- the path of the directory to be created
 //----------------------------------------------------------------------
 
 bool
-FileSystem::CreateDirectory(const char *name)
+FileSystem::CreateDirectory(const char *path)
 {
     Path *_path = new Path;
     _path->Initialize(path, currentDirectoryFile, rootDirectoryFile);
@@ -199,8 +199,6 @@ FileSystem::CreateDirectory(const char *name)
 //	  Bring the header into memory
 //
 //	"path" -- the path of the file to be opened
-//  "currentDirectoryFile" -- in which directory the file sytem is currently in
-//  "rootDirectoryFile" -- the root directory of the file sytem
 //----------------------------------------------------------------------
 
 OpenFile *
@@ -222,105 +220,17 @@ FileSystem::Open(const char *path)
 //	Return TRUE if the file was deleted, FALSE if the file wasn't
 //	in the file system.
 //
-//	"name" -- the text name of the file to be removed
+//	"path" -- the path of the file to be removed
 //----------------------------------------------------------------------
 
 bool
-FileSystem::Remove(const char *name)
+FileSystem::Remove(const char *path)
 {
-    Directory *directory;
-    BitMap *freeMap;
-    FileHeader *fileHdr;
-    int sector;
-
-    directory = new Directory(NumDirEntries);
-    directory->FetchFrom(currentDirectoryFile);
-    sector = directory->Find(name);
-    if (sector == -1) {
-       delete directory;
-       return FALSE;			 // file not found
-    }
-    fileHdr = new FileHeader;
-    fileHdr->FetchFrom(sector);
-
-    freeMap = new BitMap(NumSectors);
-    freeMap->FetchFrom(freeMapFile);
-
-    fileHdr->Deallocate(freeMap);  		// remove data blocks
-    freeMap->Clear(sector);			// remove header block
-    directory->Remove(name);
-
-    freeMap->WriteBack(freeMapFile);		// flush to disk
-    directory->WriteBack(currentDirectoryFile);        // flush to disk
-    delete fileHdr;
-    delete directory;
-    delete freeMap;
-    return TRUE;
+  Path *_path = new Path;
+  _path->Initialize(path, currentDirectoryFile, rootDirectoryFile);
+  return _path->Remove() != NULL;
 }
 
-
-//----------------------------------------------------------------------
-// FileSystem::RemoveDirectory
-// 	Delete a directory from the file system.  This requires:
-//	    Remove it from the directory
-//	    Delete the space for its header
-//	    Delete the space for its data blocks
-//	    Write changes to directory, bitmap back to disk
-//
-//	Return TRUE if the directory was deleted, FALSE if the file wasn't
-//	in the file system.
-//
-//	"name" -- the text name of the directory to be removed
-//----------------------------------------------------------------------
-
-bool
-FileSystem::RemoveDirectory(const char *name)
-{
-    Directory *currentDirectory, *toRemoveDirectory;
-    BitMap *freeMap;
-    FileHeader *dirHdr;
-    int sector;
-
-    currentDirectory = new Directory(NumDirEntries);
-    currentDirectory->FetchFrom(currentDirectoryFile);
-
-    sector = currentDirectory->Find(name);
-    if (sector == -1) {
-       delete currentDirectory;
-       return FALSE;			 // file not found
-    }
-
-    toRemoveDirectory = new Directory(NumDirEntries);
-    OpenFile *toRemoveDirectoryFile = new OpenFile(sector);
-    toRemoveDirectory->FetchFrom(toRemoveDirectoryFile);
-
-    if (!toRemoveDirectory->IsEmpty() || sector == rootDirectoryFile->GetSector()) {
-      delete currentDirectory;
-      delete toRemoveDirectory;
-      return FALSE;         //directory is not empty or directory is the root directory
-    }
-
-
-    dirHdr = new FileHeader;
-    dirHdr->FetchFrom(sector);
-
-    freeMap = new BitMap(NumSectors);
-    freeMap->FetchFrom(freeMapFile);
-
-    dirHdr->Deallocate(freeMap);  		// remove data blocks
-    freeMap->Clear(sector);			// remove header block
-    toRemoveDirectory->Remove(name);
-
-    freeMap->WriteBack(freeMapFile);		// flush to disk
-    currentDirectory->WriteBack(currentDirectoryFile);        // flush to disk
-
-    delete dirHdr;
-    delete currentDirectory;
-    delete toRemoveDirectory;
-    delete freeMap;
-
-    return TRUE;
-}
 
 //----------------------------------------------------------------------
 // FileSystem::List
@@ -334,6 +244,28 @@ FileSystem::List()
 
     directory->FetchFrom(currentDirectoryFile);
     directory->List();
+    delete directory;
+}
+
+//----------------------------------------------------------------------
+// FileSystem::ListPath
+// 	List all the files in the specified path.
+//
+//	"path" -- the path of the directory to list
+//----------------------------------------------------------------------
+void
+FileSystem::ListPath(const char* path)
+{
+    Directory *directory = new Directory(NumDirEntries);
+    OpenFile *openFile = Open(path);
+    if (openFile != NULL) {
+      directory->FetchFrom(openFile);
+      directory->List();
+    }
+    else{
+      printf("The directory does not exist");
+    }
+    delete openFile;
     delete directory;
 }
 
@@ -375,9 +307,17 @@ FileSystem::Print()
     delete directory;
 }
 
+
+//----------------------------------------------------------------------
+// FileSystem::ChangeDirectory
+// 	Change the current directory
+//
+//	"path" -- the path of the directory to move to
+//----------------------------------------------------------------------
+
 void
 FileSystem::ChangeDirectory(const char* path) {
-    OpenFile *openFile = Open(name);
+    OpenFile *openFile = Open(path);
 
     if (openFile->IsDirectory()) {
         currentDirectoryFile = openFile;
@@ -389,7 +329,7 @@ FileSystem::ChangeDirectory(const char* path) {
 
 
 //----------------------------------------------------------------------
-// FileSystemUtils::OpenFromDirectory
+// FileSystem::OpenFromDirectory
 // 	Open a file that is right inside a given directory
 //	To open a file:
 //	  Find the location of the file's header, using the directory
@@ -400,14 +340,14 @@ FileSystem::ChangeDirectory(const char* path) {
 //----------------------------------------------------------------------
 
 OpenFile*
-FileSystemUtils::OpenFromDirectory(const char *name, Directory *directory)
+FileSystem::OpenFromDirectory(const char *name, Directory *directory)
 {
     OpenFile *openFile = NULL;
     DirectoryEntry *directoryEntry = directory->FindDirectoryEntry(name);
 
-    if (currentDirectoryEntry->sector >= 0) { // name was found in directory
-	   openFile = new OpenFile(sector);
-       if (currentDirectoryEntry->isDir) openFile->SetAsDir();
+    if (directoryEntry->sector >= 0) { // name was found in directory
+	     openFile = new OpenFile(directoryEntry->sector);
+       if (directoryEntry->isDir) openFile->SetAsDir();
     }
 
     return openFile;
@@ -415,7 +355,7 @@ FileSystemUtils::OpenFromDirectory(const char *name, Directory *directory)
 
 
 //----------------------------------------------------------------------
-// FileSystemUtils::CreateFromDirectory
+// FileSystem::CreateFromDirectory
 // 	Create a file or directory that is right inside a given directory
 //
 //	"name" -- the text name of the file to be created
@@ -425,88 +365,110 @@ FileSystemUtils::OpenFromDirectory(const char *name, Directory *directory)
 //----------------------------------------------------------------------
 
 OpenFile*
-FileSystemUtils::CreateFromDirectory(const char *name, int initialSize, Directory *directory, OpenFile *directoryOpenFile)
+FileSystem::CreateFromDirectory(const char *name, int initialSize, Directory *directory, OpenFile *directoryOpenFile)
 {
     BitMap *freeMap;
     FileHeader *hdr;
     int sector;
-    bool success;
     bool isDir = (initialSize == -1);
 
     DEBUG('f', "Creating file %s, size %d\n", name, initialSize);
 
     if (directory->Find(name) != -1)
-      return FALSE;			// file is already in directory
+      return NULL;			// file is already in directory
     else {
         freeMap = new BitMap(NumSectors);
+        freeMapFile = new OpenFile(FreeMapSector);
         freeMap->FetchFrom(freeMapFile);
         sector = freeMap->Find();	// find a sector to hold the file header
-    	if (sector == -1)
-            return FALSE;		// no free block for file header
+        if (sector == -1)
+            return NULL;		// no free block for file header
         else if (!((isDir) ? directory->AddDirectory(name, sector) : directory->Add(name, sector)))
-            return FALSE;	// no space in directory
+            return NULL;	// no space in directory
         else {
-        	hdr = new FileHeader;
-            if (!hdr->Allocate(freeMap, (isDir) ? DirectoryFileSize : initialSize)
-                return FALSE;	// no space on disk for data
+            hdr = new FileHeader;
+            if (!hdr->Allocate(freeMap, (isDir) ? DirectoryFileSize : initialSize))
+                return NULL;	// no space on disk for data
             else {
                 // everthing worked, flush all changes back to disk
-            	hdr->WriteBack(sector);
-            	directory->WriteBack(directoryOpenFile);
-            	freeMap->WriteBack(freeMapFile);
+              	hdr->WriteBack(sector);
+              	directory->WriteBack(directoryOpenFile);
+              	freeMap->WriteBack(freeMapFile);
                 OpenFile *openFile = new OpenFile(sector);
 
                 if (isDir) {
-                    newDirectory = new Directory(NumDirEntries);
+                    Directory *newDirectory = new Directory(NumDirEntries);
                     newDirectory->AddDirectory(".", sector);
                     newDirectory->AddDirectory("..", directoryOpenFile->GetSector());
                     newDirectory->WriteBack(openFile);
 
                     delete newDirectory;
                 }
+
+                delete freeMap;
+                delete hdr;
+                return openFile;
             }
-            delete hdr;
         }
-        delete freeMap;
     }
-    delete directory;
+}
+
+
+//----------------------------------------------------------------------
+// FileSystem::RemoveFromDirectory
+// 	Remove a file or directory that is right inside a given directory
+//
+//	"name" -- the text name of the file to be removed
+//	"initialSize" -- size of file to be created; if > 0 then it is a file not a directory
+//  "directory" -- the directory from which the file should be open from
+//  "directoryOpenFile" -- the OpenFile that corresponds to directory
+//----------------------------------------------------------------------
+
+OpenFile*
+FileSystem::RemoveFromDirectory(const char* name, OpenFile *openFile, Directory *directory, OpenFile *directoryOpenFile)
+{
+    BitMap *freeMap;
+    FileHeader *fileHdr;
+    int sector = openFile->GetSector();
+
+    fileHdr = new FileHeader;
+    fileHdr->FetchFrom(sector);
+
+    freeMap = new BitMap(NumSectors);
+    freeMap->FetchFrom(freeMapFile);
+
+    fileHdr->Deallocate(freeMap);  		// remove data blocks
+    freeMap->Clear(sector);			// remove header block
+    directory->Remove(name);
+
+    freeMap->WriteBack(freeMapFile);		// flush to disk
+    directory->WriteBack(directoryOpenFile);        // flush to disk
+    delete fileHdr;
+    delete freeMap;
 
     return openFile;
 }
 
 
-//----------------------------------------------------------------------
-// FileSystemUtils::RemoveFromDirectory
+// FileSystem::RemoveSafelyFromDirectory
 // 	Remove a file or directory that is right inside a given directory
 //
-//	"name" -- the text name of the file to be created
+//	"name" -- the text name of the file to be removed
 //	"initialSize" -- size of file to be created; if > 0 then it is a file not a directory
 //  "directory" -- the directory from which the file should be open from
 //  "directoryOpenFile" -- the OpenFile that corresponds to directory
 //----------------------------------------------------------------------
 
 OpenFile*
-RemoveFromDirectory(OpenFile *openFile, Directory *directory, OpenFile *directoryOpenFile)
+FileSystem::RemoveSafelyFromDirectory(const char* name, OpenFile *openFile, Directory *directory, OpenFile *directoryOpenFile)
 {
-    //TODO : mix RemoveDirectory and Remove than replace both by a new Remove function that will call Path->Remove
-}
-
-
-// FileSystemUtils::RemoveSafelyFromDirectory
-// 	Remove a file or directory that is right inside a given directory
-//
-//	"name" -- the text name of the file to be created
-//	"initialSize" -- size of file to be created; if > 0 then it is a file not a directory
-//  "directory" -- the directory from which the file should be open from
-//  "directoryOpenFile" -- the OpenFile that corresponds to directory
-//----------------------------------------------------------------------
-
-OpenFile*
-RemoveSafelyFromDirectory(OpenFile *openFile, Directory *directory, OpenFile *directoryOpenFile)
-{
-    if (openFile->isDirectory()) {
-        //TODO : verifications
+    if (openFile->IsDirectory()) {
+        if (directory->IsEmpty()){
+          return RemoveFromDirectory(name, openFile, directory, directoryOpenFile);
+        } else {
+          return NULL;
+        }
     } else {
-        return RemoveFromDirectory(openFile, directory, directoryOpenFile);
+        return RemoveFromDirectory(name, openFile, directory, directoryOpenFile);
     }
 }

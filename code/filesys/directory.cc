@@ -214,7 +214,7 @@ Directory::Remove(const char *name)
     int i = FindIndex(name);
 
     if (i == -1)
-	return FALSE; 		// name not in directory
+	     return FALSE; 		// name not in directory
     table[i].inUse = FALSE;
     return TRUE;
 }
