@@ -5,7 +5,8 @@ go there
 #include "userthread.h"
 #include "system.h"
 
-Thread * newthread;
+
+extern void StartProcess(char*);
 
 class thread_args
 {
@@ -33,9 +34,8 @@ static void StartUserThread(int f)
   machine->Run();
 }
 
-static void StartProcess(int arg)
+static void MyStartProcess()
 {
-  currentThread->space = (AddrSpace*) arg;
 	currentThread->space->InitRegisters();
   currentThread->space->RestoreState();
 
@@ -57,7 +57,7 @@ int do_UserThreadCreate(int f, int arg)
 
     thread_args *f1 = new thread_args(f, arg, stackNum);
 
-    newthread = new Thread("usethr");
+    Thread *newthread = new Thread("usethr");
     newthread->stackNum = stackNum;
     joint[newthread->id]->P();
     newthread->Fork(StartUserThread,(int) f1 );
@@ -81,22 +81,26 @@ void do_UserThreadJoin(int id)
 int do_ForkExec(char *s)
 {
     OpenFile *executable = fileSystem->Open(s);
-    printf("ForkExec %s \n", s);
+
 
     if (executable == NULL) {
         printf("ForkExec %s failed...\n", s);
         return -1;
     }
+    //char * myexec = new char [MAX_STRING_SIZE];
+    //strcpy(myexec, s);
+
+    printf("ForkExec %s \n", myexec);
 
 		Thread * threadlauncher = new Thread("ForkedProcess");
-    //threadlauncher->space = new AddrSpace (executable);
+    threadlauncher->space = new AddrSpace (executable);
 
     //thread_args *f1 = new thread_args(0, 0, 0);
 
-    AddrSpace *space = new AddrSpace(executable);
+    //AddrSpace *space = new AddrSpace(executable);
 
-    delete executable;
-    threadlauncher->Fork (StartProcess, (int) space);
+    //delete executable;
+    threadlauncher->Fork ((VoidFunctionPtr)StartProcess, (int)myexec);
     //currentThread->Yield();
     return 0;
 }

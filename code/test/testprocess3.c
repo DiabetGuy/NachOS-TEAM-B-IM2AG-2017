@@ -2,9 +2,9 @@
 
 int main()
 {
-  //PutChar('A');
+  PutChar('B');
   ForkExec("./putcharsimple");
-  //ForkExec("../build/userpages1");
+  ForkExec("./putcharsimple");
 
   //Exit(0);
   while(1);
