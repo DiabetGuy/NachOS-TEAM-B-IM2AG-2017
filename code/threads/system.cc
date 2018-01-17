@@ -19,6 +19,8 @@ Statistics *stats;		// performance metrics
 Timer *timer;			// the hardware timer device,
 					// for invoking context switches
 int threadCounter = 0;//define the thread's number such as a PID
+int threadCounterFinished = 0;
+unsigned processNb = 0;
 
 #ifdef FILESYS_NEEDED
 FileSystem *fileSystem;

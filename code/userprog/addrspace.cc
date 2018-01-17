@@ -122,7 +122,6 @@ AddrSpace::AddrSpace (OpenFile * executable)
 
     pageTable = new TranslationEntry[numPages];
 
-
     for (i = 0; i < numPages; i++)
     {
   	  pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
@@ -153,11 +152,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
     spaceSem = new Semaphore("Space", 1);
     bitMap = new BitMap(PROCESS_THREADS_NUMBER);
     bitMap->Mark(0);
-    //counter = 1;
     stackBeginning = numPages * PageSize - 16;
-    testSem->P();
-    machine->processNb++;
-    testSem->V();
 }
 
 //----------------------------------------------------------------------
@@ -248,12 +243,4 @@ int
 AddrSpace::getSingleStackSize()
 {
   return UserStackSize/PROCESS_THREADS_NUMBER;
-}
-
-
-void
-AddrSpace::DecrementCounter () {
-    this->counter--;
-    if (this->counter == 1)
-        this->spaceSem->V();
 }

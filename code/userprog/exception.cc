@@ -96,24 +96,35 @@ ExceptionHandler (ExceptionType which)
           break;
         }
         case SC_Exit: {
+          DEBUG('p', "Exit.\n");
           int returnParameter = machine->ReadRegister(4);
+          testSem->P();
+          threadCounterFinished++;
+          testSem->V();
           if(returnParameter == 0)
           {
-            testSem->P();
-             machine->processNb--;
-
-            if(machine->processNb == 0)
+            if(threadCounter == threadCounterFinished)
             {
+              testSem->P();
+              processNb--;
 
-                interrupt->Halt();
+              if(processNb == 0)
+              {
+
+                  interrupt->Halt();
+              }
+              else
+              {
+                  currentThread->Finish();
+              }
+              testSem->V();
             }
             else
             {
-                currentThread->Finish();
+              currentThread->Finish();
             }
-            testSem->V();
           }
-          DEBUG('a', "Shutdown, initiated by user program.\n");
+
 
           break;
         }
@@ -175,7 +186,7 @@ ExceptionHandler (ExceptionType which)
           int arg = machine->ReadRegister(4);
           char strarg[MAX_STRING_SIZE];
           copyStringFromMachine(arg, strarg, MAX_STRING_SIZE);
-          do_ForkExec(strarg);
+          machine->WriteRegister(2, do_ForkExec(strarg));
           break;
         }
         default: {

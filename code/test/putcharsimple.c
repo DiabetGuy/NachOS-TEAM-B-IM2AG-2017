@@ -5,5 +5,5 @@
 int main()
 {
 	PutChar('a');
-	return 0;
+	Exit(0);
 }

@@ -181,8 +181,6 @@ class Machine {
 
     TranslationEntry *pageTable;
     unsigned int pageTableSize;
-		unsigned processNb;
-		Semaphore *lockM;
 
   private:
     bool singleStep;		// drop back into the debugger after each

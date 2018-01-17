@@ -42,9 +42,6 @@ class AddrSpace
 
     int stackBeginning; // where does the "stack area" starts
 
-
-    int counter;
-    void DecrementCounter();
   private:
     TranslationEntry * pageTable;	// Assume linear page table translation
     // for now!

@@ -70,8 +70,6 @@ Machine::Machine(bool debug)
     tlb = NULL;
     pageTable = NULL;
 #endif
-		processNb = 0;
-		lockM = new Semaphore("machineLock", 1);
     singleStep = debug;
     CheckEndian();
 }

@@ -34,14 +34,14 @@ static void StartUserThread(int f)
   machine->Run();
 }
 
-static void MyStartProcess()
-{
-	currentThread->space->InitRegisters();
-  currentThread->space->RestoreState();
-
-  machine->Run();
-  ASSERT(FALSE); //ne passe jamais ici
-}
+// static void MyStartProcess()
+// {
+// 	currentThread->space->InitRegisters();
+//   currentThread->space->RestoreState();
+//
+//   machine->Run();
+//   ASSERT(FALSE); //ne passe jamais ici
+// }
 
 int do_UserThreadCreate(int f, int arg)
 {
@@ -80,20 +80,20 @@ void do_UserThreadJoin(int id)
 
 int do_ForkExec(char *s)
 {
-    OpenFile *executable = fileSystem->Open(s);
-
-
-    if (executable == NULL) {
-        printf("ForkExec %s failed...\n", s);
-        return -1;
-    }
-    //char * myexec = new char [MAX_STRING_SIZE];
-    //strcpy(myexec, s);
-
+    // OpenFile *executable = fileSystem->Open(s);
+    //
+    // if (executable == NULL) {
+    //     printf("ForkExec %s failed...\n", s);
+    //     return -1;
+    // }
+    char * myexec = new char [MAX_STRING_SIZE];
+    strcpy(myexec, s);
     printf("ForkExec %s \n", myexec);
-
 		Thread * threadlauncher = new Thread("ForkedProcess");
-    threadlauncher->space = new AddrSpace (executable);
+    testSem->P();
+    processNb++;
+    testSem->V();
+    //threadlauncher->space = new AddrSpace (executable);
 
     //thread_args *f1 = new thread_args(0, 0, 0);
 
@@ -101,6 +101,5 @@ int do_ForkExec(char *s)
 
     //delete executable;
     threadlauncher->Fork ((VoidFunctionPtr)StartProcess, (int)myexec);
-    //currentThread->Yield();
     return 0;
 }

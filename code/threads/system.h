@@ -33,6 +33,8 @@ extern Interrupt *interrupt;	// interrupt status
 extern Statistics *stats;	// performance metrics
 extern Timer *timer;		// the hardware alarm clock
 extern int threadCounter;//define the thread's number such as a PID
+extern int threadCounterFinished;
+extern unsigned processNb;;
 
 #ifdef USER_PROGRAM
 #include "machine.h"

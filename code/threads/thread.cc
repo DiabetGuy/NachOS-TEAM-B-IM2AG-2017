@@ -52,7 +52,7 @@ Thread::Thread (const char *threadName)
 //----------------------------------------------------------------------
 // Thread::~Thread
 //      De-allocate a thread.
-//
+//threadCounterFinished++;
 //      NOTE: the current thread *cannot* delete itself directly,
 //      since it is still running on the stack that we need to delete.
 //
@@ -64,7 +64,6 @@ Thread::Thread (const char *threadName)
 Thread::~Thread ()
 {
     DEBUG ('t', "Deleting thread \"%s\"\n", name);
-
     ASSERT (this != currentThread);
     //delete this->space;
     if (stack != NULL)
@@ -171,7 +170,7 @@ Thread::Finish ()
     // is ever lost
     ASSERT (threadToBeDestroyed == NULL);
     // End of addition
-
+    
     threadToBeDestroyed = currentThread;
     Sleep ();			// invokes SWITCH
     // not reached

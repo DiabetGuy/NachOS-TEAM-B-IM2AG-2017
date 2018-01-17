@@ -4,10 +4,10 @@ int main()
 {
   //PutChar('A');
   ForkExec("./putcharsimple");
-  //ForkExec("../build/userpages1");
+  ForkExec("./putcharsimple");
 
-  //Exit(0);
-  while(1);
+  Exit(0);
+
 
 
 }
