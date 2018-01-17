@@ -9,7 +9,7 @@
 
 
 //----------------------------------------------------------------------
-// Path::Path
+// Path::Initialize
 // 	Parse a Path into a list of PathElement
 //
 //	"path" -- the path of the file to be opened
@@ -64,46 +64,6 @@ Path::~Path()
 
 
 //----------------------------------------------------------------------
-// Path::Open
-//  Open the file that corresponds to the path
-//----------------------------------------------------------------------
-OpenFile*
-Path::Open()
-{
-    OpenFile *openFile = initialDirectoryFile;
-    DirectoryEntry *currentDirectoryEntry;
-    Directory *directory = new Directory(NumDirEntries);
-    directory->FetchFrom(openFile);
-
-    for (PathElement *current = head; current != NULL; current = current->next) {
-        //if directory entry found
-        currentDirectoryEntry = directory->FindDirectoryEntry(current->name);
-        if (currentDirectoryEntry->sector != -1) {
-            delete openFile;
-            OpenFile *openFile = new OpenFile(currentDirectoryEntry->sector);
-            if (currentDirectoryEntry->isDir) {
-                openFile->SetAsDir();
-                directory->FetchFrom(openFile);
-            } else { //current is the file and should be the last PathElement
-                if (current->next != NULL) { //current is not the last PathElement so Path is wrong
-                    delete directory;
-                    delete openFile;
-                    return NULL;
-                }
-            }
-        } else { //if directory entry not found
-            delete directory;
-            delete openFile;
-            return NULL;
-        }
-    }
-    delete directory;
-
-    return openFile;
-}
-
-
-//----------------------------------------------------------------------
 // Path::SetInitialDirectory
 // 	Set the initial directory from which the path starts
 //
@@ -125,37 +85,120 @@ Path::SetInitialDirectory(const char *path, OpenFile *currentDirectoryFile, Open
 
 
 //----------------------------------------------------------------------
-// Path::Iterate
-//  Open the file that corresponds to the path
+// Path::Open
+//  Open the file or directory that the path refers to
 //----------------------------------------------------------------------
-PathElement*
-Path::Iterate(PathElement *current)
+OpenFile*
+Path::Open()
 {
-  DirectoryEntry *currentDirectoryEntry;
-  Directory *directory = new Directory(NumDirEntries);
-  directory->FetchFrom(current->openFile);
+    return Resolve(&PathResolver::Open);
+}
 
-  currentDirectoryEntry = directory->FindDirectoryEntry(current->name);
-      if (currentDirectoryEntry->sector != -1) {
-          delete openFile;
-          OpenFile *openFile = new OpenFile(currentDirectoryEntry->sector);
-          if (currentDirectoryEntry->isDir) {
-              openFile->SetAsDir();
-              directory->FetchFrom(openFile);
-          } else { //current is the file and should be the last PathElement
-              if (current->next != NULL) { //current is not the last PathElement so Path is wrong
-                  delete directory;
-                  delete openFile;
-                  return NULL;
-              }
-          }
-      } else { //if directory entry not found
-          delete directory;
-          delete openFile;
-          return NULL;
-      }
-  }
-  delete directory;
 
-  return openFile;
+//----------------------------------------------------------------------
+// Path::Create
+//  Create the file or directory that the path refers to
+//
+//  "size" -- size of file to be created; if > 0 then it is a file not a directory
+//----------------------------------------------------------------------
+OpenFile*
+Path::Create(int size)
+{
+    if (size > 0) {
+        initialSize = size;
+        return Resolve(&PathResolver::CreateFile);
+    } else {
+        initialSize = -1;
+        return Resolve(&PathResolver::CreateDirectory);
+    }
+}
+
+
+//----------------------------------------------------------------------
+// Path::Resolve
+//  Process the list with the help of a specified resolver
+//
+//  "resolver" -- a resolver to be called every time the file cannot be opened
+//----------------------------------------------------------------------
+OpenFile*
+Path::Resolve(OpenFile* (PathResolver::*resolver)(PathElement *current, Directory *directory, openFile *directoryOpenFile))
+{
+    OpenFile *openFile = initialDirectoryFile;
+    DirectoryEntry *currentDirectoryEntry;
+    Directory *directory = new Directory(NumDirEntries);
+    directory->FetchFrom(openFile);
+
+    for (PathElement *current = head; current != NULL; current = current->next) {
+        //try to open the file else to resolve it
+        openFile = FileSystemUtils::OpenFromDirectory(current->name, directory)
+                   || (this->*resolver)(current, directory, openFile); //open failed so try to resolve
+
+        if (openFile) {
+            if (openFile->IsDirectory()) {
+                directory->FetchFrom();
+            } else {
+                if (current->next != NULL) { //current is not the last PathElement so Path is wrong
+                    delete current;
+                    delete directory;
+                    delete openFile;
+                    return NULL;
+                } //else the for loop will end and return openFile
+            }
+        } else {
+            delete current;
+            delete directory;
+            delete openFile;
+            return NULL;
+        }
+    }
+    delete current;
+    delete directory;
+
+    return openFile;
+}
+
+
+
+//----------------------------------------------------------------------
+// PathResolver::Open
+//  Always return NULL as there is nothing to do if the file does not exist
+//
+//  "current" -- the current PathElement being processed by Resolve
+//  "directory" -- the current Directory, Resolve is in
+//  "directoryOpenFile" -- the OpenFile that corresponds to the directory
+//----------------------------------------------------------------------
+OpenFile*
+PathResolver::Open(PathElement *current, Directory *directory, OpenFile *directoryOpenFile)
+{
+    return NULL;
+}
+
+
+//----------------------------------------------------------------------
+// PathResolver::CreateFile
+//  Create a directory if current is not last else a file
+//
+//  "current" -- the current PathElement being processed by Resolve
+//  "directory" -- the current Directory, Resolve is in
+//  "directoryOpenFile" -- the OpenFile that corresponds to the directory
+//----------------------------------------------------------------------
+OpenFile*
+PathResolver::CreateFile(PathElement *current, Directory *directory, OpenFile *directoryOpenFile)
+{
+    return FileSystemUtils::CreateFromDirectory(current->name, (current->next != NULL) ? -1 : initialSize, directory, directoryOpenFile);
+}
+
+
+//----------------------------------------------------------------------
+// PathResolver::CreateDirectory
+//  Create a directory
+//
+//  "current" -- the current PathElement being processed by Resolve
+//  "directory" -- the current Directory, Resolve is in
+//  "directoryOpenFile" -- the OpenFile that corresponds to the directory
+//----------------------------------------------------------------------
+OpenFile*
+PathResolver::CreateDirectory(PathElement *current, Directory *directory, OpenFile *directoryOpenFile, directoryOpenFile)
+{
+    return FileSystemUtils::CreateFromDirectory(current->name, -1, directory, directoryOpenFile);
 }

@@ -170,44 +170,9 @@ FileSystem::FileSystem(bool format)
 bool
 FileSystem::Create(const char *name, int initialSize)
 {
-    Directory *directory;
-    BitMap *freeMap;
-    FileHeader *hdr;
-    int sector;
-    bool success;
-
-    DEBUG('f', "Creating file %s, size %d\n", name, initialSize);
-
-    directory = new Directory(NumDirEntries);
-    directory->FetchFrom(currentDirectoryFile);
-
-    if (directory->Find(name) != -1)
-      success = FALSE;			// file is already in directory
-    else {
-        freeMap = new BitMap(NumSectors);
-        freeMap->FetchFrom(freeMapFile);
-        sector = freeMap->Find();	// find a sector to hold the file header
-    	  if (sector == -1)
-          success = FALSE;		// no free block for file header
-        else if (!directory->Add(name, sector))
-          success = FALSE;	// no space in directory
-        else {
-        	hdr = new FileHeader;
-          if (!hdr->Allocate(freeMap, initialSize))
-          	success = FALSE;	// no space on disk for data
-          else {
-          	success = TRUE;
-      	    // everthing worked, flush all changes back to disk
-    	    	hdr->WriteBack(sector);
-    	    	directory->WriteBack(currentDirectoryFile);
-    	    	freeMap->WriteBack(freeMapFile);
-          }
-            delete hdr;
-        }
-        delete freeMap;
-    }
-    delete directory;
-    return success;
+    Path *_path = new Path;
+    _path->Initialize(path, currentDirectoryFile, rootDirectoryFile);
+    return _path->Create(initialSize) != NULL;
 }
 
 
@@ -221,55 +186,9 @@ FileSystem::Create(const char *name, int initialSize)
 bool
 FileSystem::CreateDirectory(const char *name)
 {
-  Directory *currentDirectory, *newDirectory;
-  BitMap *freeMap;
-  FileHeader *dirHdr;
-  int dirSector;
-  bool success;
-
-  DEBUG('f', "Creating file %s, size %d\n", name, DirectoryFileSize);
-
-  currentDirectory = new Directory(NumDirEntries);
-  currentDirectory->FetchFrom(currentDirectoryFile);
-
-  newDirectory = new Directory(NumDirEntries);
-
-  if (currentDirectory->Find(name) != -1)
-    success = FALSE;			// file is already in directory
-  else {
-    freeMap = new BitMap(NumSectors);
-    freeMap->FetchFrom(freeMapFile);
-    dirSector = freeMap->Find();	// find a sector to hold the file header
-    if (dirSector == -1)
-      success = FALSE;		// no free block for file header
-    else if (!currentDirectory->AddDirectory(name, dirSector))
-      success = FALSE;	// no space in directory
-    else {
-      dirHdr = new FileHeader();
-      if (!dirHdr->Allocate(freeMap, DirectoryFileSize))
-        success = FALSE;	// no space on disk for data
-      else {
-        success = TRUE;
-        // everthing worked, flush all changes back to disk
-        dirHdr->WriteBack(dirSector);
-
-        OpenFile *newDirectoryFile = new OpenFile(dirSector);
-        newDirectory->AddDirectory(".", dirSector);
-        newDirectory->AddDirectory("..", currentDirectoryFile->GetSector());
-        newDirectory->WriteBack(newDirectoryFile);
-
-        currentDirectory->WriteBack(currentDirectoryFile);
-        freeMap->WriteBack(freeMapFile);
-        delete newDirectoryFile;
-      }
-        delete dirHdr;
-        delete newDirectory;
-    }
-      delete freeMap;
-  }
-  delete currentDirectory;
-
-  return success;
+    Path *_path = new Path;
+    _path->Initialize(path, currentDirectoryFile, rootDirectoryFile);
+    return _path->Create(-1) != NULL;
 }
 
 //----------------------------------------------------------------------
@@ -287,9 +206,9 @@ FileSystem::CreateDirectory(const char *name)
 OpenFile *
 FileSystem::Open(const char *path)
 {
-    Path *pathHandler = new Path;
-    pathHandler->Initialize(path, currentDirectoryFile, rootDirectoryFile);
-    return pathHandler->Open();
+    Path *_path = new Path;
+    _path->Initialize(path, currentDirectoryFile, rootDirectoryFile);
+    return _path->Open();
 }
 
 //----------------------------------------------------------------------
@@ -458,9 +377,7 @@ FileSystem::Print()
 
 void
 FileSystem::ChangeDirectory(const char* path) {
-    Path *pathHandler = new Path;
-    pathHandler->Initialize(path, currentDirectoryFile, rootDirectoryFile);
-    OpenFile *openFile = pathHandler->Open();
+    OpenFile *openFile = Open(name);
 
     if (openFile->IsDirectory()) {
         currentDirectoryFile = openFile;
@@ -472,8 +389,8 @@ FileSystem::ChangeDirectory(const char* path) {
 
 
 //----------------------------------------------------------------------
-// FileSystem::OpenFromDirectory
-// 	Open a file from a directory for reading and writing.
+// FileSystemUtils::OpenFromDirectory
+// 	Open a file that is right inside a given directory
 //	To open a file:
 //	  Find the location of the file's header, using the directory
 //	  Bring the header into memory
@@ -482,15 +399,92 @@ FileSystem::ChangeDirectory(const char* path) {
 //  "directory" -- the directory from which the file should be open from
 //----------------------------------------------------------------------
 
-OpenFile *
-FileSystem::OpenFromDirectory(const char *name, Directory *directory)
+OpenFile*
+FileSystemUtils::OpenFromDirectory(const char *name, Directory *directory)
 {
     OpenFile *openFile = NULL;
-    int sector = directory->Find(name);
+    DirectoryEntry *directoryEntry = directory->FindDirectoryEntry(name);
 
-    if (sector >= 0) { // name was found in directory
-	     return openFile = new OpenFile(sector);
+    if (currentDirectoryEntry->sector >= 0) { // name was found in directory
+	   openFile = new OpenFile(sector);
+       if (currentDirectoryEntry->isDir) openFile->SetAsDir();
     }
 
-    return NULL; // name was not found in directory
+    return openFile;
+}
+
+
+//----------------------------------------------------------------------
+// FileSystemUtils::CreateFromDirectory
+// 	Create a file or directory that is right inside a given directory
+//
+//	"name" -- the text name of the file to be created
+//	"initialSize" -- size of file to be created; if > 0 then it is a file not a directory
+//  "directory" -- the directory from which the file should be open from
+//----------------------------------------------------------------------
+
+OpenFile*
+FileSystemUtils::CreateFromDirectory(const char *name, int initialSize, Directory *directory, OpenFile *directoryOpenFile)
+{
+    BitMap *freeMap;
+    FileHeader *hdr;
+    int sector;
+    bool success;
+    bool isDir = (initialSize == -1);
+
+    DEBUG('f', "Creating file %s, size %d\n", name, initialSize);
+
+    if (directory->Find(name) != -1)
+      return FALSE;			// file is already in directory
+    else {
+        freeMap = new BitMap(NumSectors);
+        freeMap->FetchFrom(freeMapFile);
+        sector = freeMap->Find();	// find a sector to hold the file header
+    	if (sector == -1)
+            return FALSE;		// no free block for file header
+        else if (!((isDir) ? directory->AddDirectory(name, sector) : directory->Add(name, sector)))
+            return FALSE;	// no space in directory
+        else {
+        	hdr = new FileHeader;
+            if (!hdr->Allocate(freeMap, (isDir) ? DirectoryFileSize : initialSize)
+                return FALSE;	// no space on disk for data
+            else {
+                // everthing worked, flush all changes back to disk
+            	hdr->WriteBack(sector);
+            	directory->WriteBack(directoryOpenFile);
+            	freeMap->WriteBack(freeMapFile);
+                OpenFile *openFile = new OpenFile(sector);
+
+                if (isDir) {
+                    newDirectory = new Directory(NumDirEntries);
+                    newDirectory->AddDirectory(".", sector);
+                    newDirectory->AddDirectory("..", directoryOpenFile->GetSector());
+                    newDirectory->WriteBack(openFile);
+
+                    delete newDirectory;
+                }
+            }
+            delete hdr;
+        }
+        delete freeMap;
+    }
+    delete directory;
+
+    return openFile;
+}
+
+
+//----------------------------------------------------------------------
+// FileSystemUtils::RemoveFromDirectory
+// 	Remove a file or directory that is right inside a given directory
+//
+//	"name" -- the text name of the file to be created
+//	"initialSize" -- size of file to be created; if > 0 then it is a file not a directory
+//  "directory" -- the directory from which the file should be open from
+//----------------------------------------------------------------------
+
+OpenFile*
+RemoveFromDirectory(OpenFile *openFile, Directory *directory)
+{
+    //TODO
 }

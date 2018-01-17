@@ -38,6 +38,7 @@
 #include "copyright.h"
 #include "openfile.h"
 #include "directory.h"
+#include "bool.h"
 
 
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as
@@ -114,9 +115,20 @@ class FileSystem {
 					// file names, represented as a file
     OpenFile* currentDirectoryFile;		// "Current" directory -- list of
            // file names, represented as a file
-
-    OpenFile* OpenFromDirectory(const char *name, Directory *directory); //Open a file from a directory
 };
+
+
+// Some helper functions
+
+class FileSystemUtils {
+  public:
+    OpenFile* OpenFromDirectory(const char *name, Directory *directory); //Open a file that is right inside a given directory
+
+    OpenFile* CreateFromDirectory(const char *name, int initialSize, Directory *directory, OpenFile *directoryOpenFile); //Create a file or directory that is right inside a given directory
+
+    OpenFile* RemoveFromDirectory(OpenFile *openFile, Directory *directory); //Remove a file or directory that is right inside a given directory
+};
+
 
 #endif // FILESYS
 
