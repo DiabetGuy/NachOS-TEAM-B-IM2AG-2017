@@ -27,10 +27,10 @@ class PathElement {
 
 class Path {
   public:
-    ~Path(); // Delete path
-
     // Parse a Path into a list of PathElement
-    bool Initialize(const char *path, OpenFile *currentDirectoryFile, OpenFile *rootDirectoryFile);
+    Path(const char *path, OpenFile *currentDirectoryFile, OpenFile *rootDirectoryFile);
+
+    ~Path(); // Delete path
 
     // Process the list with the help of a specified resolver
     OpenFile* Resolve(char resolver);

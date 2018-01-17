@@ -10,7 +10,7 @@
 
 
 //----------------------------------------------------------------------
-// Path::Initialize
+// Path::Path
 // 	Parse a Path into a list of PathElement
 //
 //	"path" -- the path of the file to be opened
@@ -18,8 +18,7 @@
 //  "rootDirectoryFile" -- the root directory of the file sytem
 //----------------------------------------------------------------------
 
-bool
-Path::Initialize(const char *path, OpenFile *currentDirectoryFile, OpenFile *rootDirectoryFile)
+Path::Path(const char *path, OpenFile *currentDirectoryFile, OpenFile *rootDirectoryFile)
 {
     SetInitialDirectory(path, currentDirectoryFile, rootDirectoryFile);
 
@@ -35,13 +34,11 @@ Path::Initialize(const char *path, OpenFile *currentDirectoryFile, OpenFile *roo
             default:
                 tail->name[tail->nameSize] = path[i]; //add caracter by caracter
                 tail->nameSize++;
-                if (tail->nameSize > FileNameMaxLen) return FALSE; //file name too long
+                //if (tail->nameSize > FileNameMaxLen) //file name too long
         }
     }
     tail->name[tail->nameSize] = '\0';
     tail->next = NULL;
-
-    return TRUE;
 }
 
 

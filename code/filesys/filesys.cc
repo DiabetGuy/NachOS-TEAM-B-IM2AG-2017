@@ -170,8 +170,7 @@ FileSystem::FileSystem(bool format)
 bool
 FileSystem::Create(const char *path, int initialSize)
 {
-    Path *_path = new Path;
-    _path->Initialize(path, currentDirectoryFile, rootDirectoryFile);
+    Path *_path = new Path(path, currentDirectoryFile, rootDirectoryFile);
     return _path->Create(initialSize) != NULL;
 }
 
@@ -186,8 +185,7 @@ FileSystem::Create(const char *path, int initialSize)
 bool
 FileSystem::CreateDirectory(const char *path)
 {
-    Path *_path = new Path;
-    _path->Initialize(path, currentDirectoryFile, rootDirectoryFile);
+    Path *_path = new Path(path, currentDirectoryFile, rootDirectoryFile);
     return _path->Create(-1) != NULL;
 }
 
@@ -204,8 +202,7 @@ FileSystem::CreateDirectory(const char *path)
 OpenFile *
 FileSystem::Open(const char *path)
 {
-    Path *_path = new Path;
-    _path->Initialize(path, currentDirectoryFile, rootDirectoryFile);
+    Path *_path = new Path(path, currentDirectoryFile, rootDirectoryFile);
     return _path->Open();
 }
 
@@ -226,8 +223,7 @@ FileSystem::Open(const char *path)
 bool
 FileSystem::Remove(const char *path)
 {
-  Path *_path = new Path;
-  _path->Initialize(path, currentDirectoryFile, rootDirectoryFile);
+  Path *_path = new Path(path, currentDirectoryFile, rootDirectoryFile);
   return _path->Remove() != NULL;
 }
 
